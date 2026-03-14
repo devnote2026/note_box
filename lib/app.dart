@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
       title: 'Note Box',
       debugShowCheckedModeBanner: false,
       
-      routerConfig: router,
+      routerConfig: AppRouter.router,
     );
   }
 }

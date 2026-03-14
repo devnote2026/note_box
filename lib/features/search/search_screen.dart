@@ -9,7 +9,7 @@ class SearchScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('ニックネームを入力')
+        child: Text('ノートを検索')
       )
     );
   }

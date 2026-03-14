@@ -28,7 +28,7 @@ class AppRouter {
           return '/login';
         } 
         if (isLogin){
-          return '/nickname';
+          return '/search';
         }
         else{
           return null;
@@ -37,7 +37,7 @@ class AppRouter {
       
 
       // 画面リスト
-      
+
       routes: [
         GoRoute(
           path: '/login',

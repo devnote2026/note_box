@@ -6,11 +6,22 @@ import 'app.dart';
 
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  try{
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  catch(e){
+    debugPrint("Firebase初期化失敗: $e");
+    return;
+  }
 
   runApp(const MyApp());
 }
+
+
+
+
+ 

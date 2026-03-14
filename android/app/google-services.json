@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "751038134165",
+    "project_id": "note-box-e0b75",
+    "storage_bucket": "note-box-e0b75.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:751038134165:android:e2d588fb46941ed9f2289c",
+        "android_client_info": {
+          "package_name": "com.example.note_box"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "751038134165-d76sj3fq4mvump16jra5d843dhjkp11p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkBJlc_ubL1Iw-yX6m12DCPH6V1hoEs-A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "751038134165-d76sj3fq4mvump16jra5d843dhjkp11p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

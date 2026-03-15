@@ -9,30 +9,32 @@ import 'package:flutter/foundation.dart';
 class StorageService {
   final _storage = FirebaseStorage.instance;
   
+Future<String> uploadProfileImage(String uid, File image) async {
+  try {
 
+    final converted = await ImageUtils.convertToJpg(image);
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
 
-  // 画像をアップロードする関数
-  Future<String> uploadProfileImage (String uid, File image) async {
-    try{
+    final folderRef = _storage.ref().child("users").child(uid);
 
-      final converted = await ImageUtils.convertToJpg(image);
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-      final ref = _storage
-                  .ref()
-                  .child("users")
-                  .child(uid)
-                  .child("profile_$timestamp.jpg");
-
-      await ref.putFile(converted);
-
-      return await ref.getDownloadURL();
-      
-      }
-
-    catch(e){
-      debugPrint("プロフィール画像のアップロードに失敗しました。$e");
-      rethrow;
+    // 古い画像削除
+    final list = await folderRef.listAll();
+    for (final item in list.items) {
+      await item.delete();
     }
+
+    final ref = folderRef.child("profile_$timestamp.jpg");
+
+    await ref.putFile(
+      converted,
+      SettableMetadata(contentType: "image/jpeg"),
+    );
+
+    return await ref.getDownloadURL();
+
+  } catch (e) {
+    debugPrint("プロフィール画像のアップロードに失敗しました。$e");
+    rethrow;
   }
+}
 }

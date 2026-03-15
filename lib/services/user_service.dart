@@ -29,8 +29,7 @@ class UserService {
               "createdAt": FieldValue.serverTimestamp(),
               "gradeDepartmentSaved": false,
               "isProfileCompleted": false
-             }
-             );
+             }, SetOptions(merge: true));
 
   }
 

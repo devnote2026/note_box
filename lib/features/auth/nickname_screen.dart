@@ -37,7 +37,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
 
       if (nickname.isEmpty){
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("ニックネームを入力してください"))
+          SnackBar(content: Text("ニックネームを入力してください",style:TextStyle(fontSize: 20)))
         );
         return;
       }

@@ -69,7 +69,7 @@ Future<void> _saveGradeDepartment() async {
   } catch (e) {
     debugPrint("学年・学科の保存に失敗しました: $e");
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("保存に失敗しました")),
+      const SnackBar(content: Text("保存に失敗しました。もう一度試してください。")),
     );
   }
 }

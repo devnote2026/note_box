@@ -57,5 +57,9 @@
         </array>
       </dict>
     </array>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>プロフィール画像を選択するため</string>
+	
 </dict>
 </plist>

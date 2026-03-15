@@ -30,6 +30,7 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
 
       final pickedFile = await _picker.pickImage(  //選択された画像を pickedFile に保存。
         source: ImageSource.gallery,
+        maxWidth: 800
       );
 
       if (pickedFile == null) return;
@@ -43,6 +44,10 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
 
     catch(e){
       debugPrint("写真ライブラリから画像の取得に失敗: $e");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("画像の保存に失敗しました"))
+      );
     }
   }
 

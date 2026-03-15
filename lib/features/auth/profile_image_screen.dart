@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/storage_service.dart';
+import '../../services/profile_service.dart';
 
 import '../../widgets/custom_button.dart';
 
@@ -20,6 +22,7 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
 
   File? image;                                     //選択された画像を管理する変数。
   final ImagePicker _picker = ImagePicker();       //写真ライブラリを操作するクラス。
+  final profileService = ProfileService(StorageService());
 
 
   Future<void> pickImage() async {                 //写真ライブラリから画像を取得する関数
@@ -31,6 +34,8 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
 
       if (pickedFile == null) return;
 
+      if(!mounted) return;
+
       setState(() {
         image = File(pickedFile.path);
       });
@@ -38,15 +43,10 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
 
     catch(e){
       debugPrint("写真ライブラリから画像の取得に失敗: $e");
-      rethrow;
     }
   }
 
 
-
-  void next (){
-    context.go("/search");
-  }
 
 
   @override
@@ -81,7 +81,7 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: Colors.black, // 枠線の色
-                        width: 0,
+                        width: 2,
                       ),
                    ),
                     child: CircleAvatar(
@@ -99,18 +99,35 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
 
                   CustomButton(
                     text: "画像を選択",
-                    onPressed: () async{
-                      await pickImage();
-                    },
+                    onPressed: pickImage
                   ),
 
                   const SizedBox(height: 20,),
 
                   CustomButton(
-                    text:"次へ",
-                    onPressed: (){
-                      debugPrint("画像をストレージに保存します。");
-                      //ストレージに保存して、FirestoreのURL更新、isProfileCompleted更新
+                    text:"プロフィール画像に設定",
+                    onPressed: () async{
+
+                      if (image == null){
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("プロフィール画像を選択してください。")),
+                        );
+
+                        debugPrint("プロフィール画像が選択されていません。");
+                        return;
+                      }
+                      try{
+                        await profileService.saveProfileImage(image!);
+                        debugPrint("プロフィール画像の保存に成功しました。");
+
+
+                        if(!mounted) return;
+                        context.go('/search');
+                      }
+
+                      catch(e){
+                        debugPrint("プロフィール画像の保存に失敗しました。$e");
+                      }
 
                     },
                   ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 //画面
@@ -20,22 +21,54 @@ class AppRouter {
 
     
     static final router = GoRouter(
-      initialLocation: '/profile_image',
+      initialLocation: '/login',
       refreshListenable: _authNotifier,
-      redirect:(context, state) {
-        final user = FirebaseAuth.instance.currentUser;
-        final isLogin = state.matchedLocation == '/login';
 
-        if(user == null){
-          return isLogin ? null : '/login';
-        } 
-        if (isLogin){
-          return '/profile_image';
-        }
-        else{
-          return null;
-        }
-      },
+redirect: (context, state) async {
+
+  final user = FirebaseAuth.instance.currentUser;
+  final location = state.matchedLocation;
+
+  if (user == null) {
+    return location == '/login' ? null : '/login';
+  }
+
+  try {
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    final data = doc.data();
+
+    if (data == null) {
+      return location == '/nickname' ? null : '/nickname';
+    }
+
+    if (data["nickname"] == null) {
+      return location == '/nickname' ? null : '/nickname';
+    }
+
+    if (data["gradeDepartmentSaved"] != true) {
+      return location == '/grade_department'
+          ? null
+          : '/grade_department';
+    }
+
+    if (data["isProfileCompleted"] != true) {
+      return location == '/profile_image'
+          ? null
+          : '/profile_image';
+    }
+
+    return location == '/search' ? null : '/search';
+
+  } catch (e) {
+    debugPrint("Router Firestore error: $e");
+    return '/login';
+  }
+},
       
 
       // 画面リスト

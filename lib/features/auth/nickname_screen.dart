@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../services/user_service.dart';
 
 //ニックネームを入力・保存を行う画面。
@@ -40,14 +42,25 @@ class _NicknameScreenState extends State<NicknameScreen> {
         return;
       }
 
-      final uid = FirebaseAuth.instance.currentUser!.uid;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null){
+        debugPrint('ユーザーがログインしていません。');
+        return;
+      }
+
+      final uid = user.uid;
 
       await UserService().createUser(uid: uid, nickname: nickname);
       
       debugPrint('ニックネームの保存に成功しました: $nickname');
+      context.go('/grade_department');
     }
     catch(e){
       debugPrint("ニックネームを保存できませんでした$e");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("保存に失敗しました。もう一度試してください"))
+      );
       return;
     }
   }

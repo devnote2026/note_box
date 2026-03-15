@@ -4,6 +4,8 @@ import '../../widgets/custom_button.dart';
 import '../../services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'package:go_router/go_router.dart';
+
 
 //学年・学科を登録する画面
 
@@ -61,6 +63,8 @@ Future<void> _saveGradeDepartment() async {
     );
 
     // ここで画面遷移する場合は Navigator.push(...)
+    debugPrint("学年・学科の保存に成功しました。");
+    context.go("/profile_image");
 
   } catch (e) {
     debugPrint("学年・学科の保存に失敗しました: $e");

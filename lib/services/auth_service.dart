@@ -45,7 +45,7 @@ class AuthService{
   Future<void> signOut() async {
     try{
       await GoogleSignIn.instance.signOut();
-      await _auth.signOut;
+      await _auth.signOut();
     }
     catch(e){
       debugPrint("サインアウトエラー: $e");

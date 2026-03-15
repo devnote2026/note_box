@@ -18,14 +18,14 @@ class AppRouter {
 
     
     static final router = GoRouter(
-      initialLocation: '/login',
+      initialLocation: '/search',
       refreshListenable: _authNotifier,
       redirect:(context, state) {
         final user = FirebaseAuth.instance.currentUser;
         final isLogin = state.matchedLocation == '/login';
 
         if(user == null){
-          return '/login';
+          return isLogin ? null : '/login';
         } 
         if (isLogin){
           return '/search';
@@ -64,11 +64,15 @@ class AppRouter {
 
 // firebaseのログイン状態の変化を監視し、go_routerに渡せる形式にする。
 class AuthStateNotifier extends ChangeNotifier {
-  AuthStateNotifier(Stream<User?> stream) {
-    _sub = stream.listen((_) => notifyListeners());
-  }
 
   late final StreamSubscription<User?> _sub;
+
+  AuthStateNotifier(Stream<User?> stream) {
+    _sub = stream.listen((user) {
+      debugPrint("AUTH STATE CHANGED: $user");
+      notifyListeners();
+    });
+  }
 
   @override
   void dispose() {

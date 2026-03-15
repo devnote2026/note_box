@@ -18,17 +18,17 @@ class AppRouter {
 
     
     static final router = GoRouter(
-      initialLocation: '/search',
+      initialLocation: '/nickname',
       refreshListenable: _authNotifier,
       redirect:(context, state) {
         final user = FirebaseAuth.instance.currentUser;
         final isLogin = state.matchedLocation == '/login';
 
         if(user == null){
-          return isLogin ? null : '/login';
+          return isLogin ? null : '/nickname';
         } 
         if (isLogin){
-          return '/search';
+          return '/nickname';
         }
         else{
           return null;

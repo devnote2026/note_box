@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import './features/auth/login_screen.dart';    // ログイン画面
 import './features/auth/nickname_screen.dart'; // ニックネーム入力画面
 import './features/search/search_screen.dart'; // 検索画面
+import './features/auth/grade_department_screen.dart'; //学年・学科登録画面
 
 
 class AppRouter {
@@ -18,17 +19,17 @@ class AppRouter {
 
     
     static final router = GoRouter(
-      initialLocation: '/nickname',
+      initialLocation: '/grade_department',
       refreshListenable: _authNotifier,
       redirect:(context, state) {
         final user = FirebaseAuth.instance.currentUser;
         final isLogin = state.matchedLocation == '/login';
 
         if(user == null){
-          return isLogin ? null : '/nickname';
+          return isLogin ? null : '/login';
         } 
         if (isLogin){
-          return '/nickname';
+          return '/grade_department';
         }
         else{
           return null;
@@ -52,6 +53,11 @@ class AppRouter {
         GoRoute(
           path: '/search',
           builder: (context, state) => const SearchScreen(),
+        ),
+
+        GoRoute(
+          path: '/grade_department',
+          builder: (context, state) => const GradeDepartmentScreen(),
         )
 
       ]

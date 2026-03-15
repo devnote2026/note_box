@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../services/user_service.dart';
+
+//ニックネームを入力・保存を行う画面。
+
+
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({super.key});
@@ -9,65 +16,103 @@ class NicknameScreen extends StatefulWidget {
 
 class _NicknameScreenState extends State<NicknameScreen> {
   
+
+  //テキストフィールドを監視する人。
   final _nicknameController = TextEditingController();
+
+  //監視しなくて良くなったら殺す。
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    super.dispose();
+  }
+  
+
+  //ニックネームを保存する関数を先につくっておく
+  Future<void> _saveNickname () async{
+    try{
+      final nickname = _nicknameController.text.trim();
+
+      if (nickname.isEmpty){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("ニックネームを入力してください"))
+        );
+        return;
+      }
+
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      await UserService().createUser(uid: uid, nickname: nickname);
+      
+      debugPrint('ニックネームの保存に成功しました: $nickname');
+    }
+    catch(e){
+      debugPrint("ニックネームを保存できませんでした$e");
+      return;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    
+
+
+    // テキストフィールドと、次へボタンを配置する。
     return Scaffold(
       backgroundColor: Colors.white,
 
-      body: Column(
-        children: [
+      body: SafeArea(
+        child: Column(
+          children: [
 
-          Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
+            Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
 
-              // Padding 部分
-              children: [
-                Text("ニックネームを入力してください",style: TextStyle(height: 24,color: Colors.black),),
+                // Padding 部分
+                children: [
+                  Text("ニックネームを入力してください",style: TextStyle(height: 24,color: Colors.black),),
 
-                TextField(
-                  controller: _nicknameController,
-                  decoration: InputDecoration(
-                    labelText: '飯間 圭一郎',
-                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                  TextField(
+                    controller: _nicknameController,
+                    decoration: InputDecoration(
+                      labelText: '飯間 圭一郎',
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
 
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide( color: Colors.grey)
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide( color: Colors.grey)
+                      ),
+
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 2)
+                      )
+                    ),
+                  ),
+
+                  SizedBox(height: 20,),
+
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 56),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      )
                     ),
 
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue, width: 2)
-                    )
-                  ),
-                ),
+                    onPressed: () async {
+                      await _saveNickname();
+                    },
 
-                SizedBox(height: 20,),
+                    child: Text("次へ",style: TextStyle(color: Colors.black))
 
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    )
-                  ),
+                  )
+                ],
+              )
+            ),
 
-                  onPressed: (){
-                    debugPrint(_nicknameController.text);
-                  },
-
-                  child: Text("次へ",style: TextStyle(color: Colors.black))
-
-                )
-              ],
-            )
-          ),
-
-          Expanded(
-            child:Spacer()
-          )
-        ],
+            Spacer()
+          ],
+        ),
       )
     );
   }

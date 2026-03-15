@@ -63,7 +63,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '751038134165',
     projectId: 'note-box-e0b75',
     storageBucket: 'note-box-e0b75.firebasestorage.app',
+    androidClientId: '751038134165-0m5e5ov1ha61s2hhfkam71bp29c7v1l4.apps.googleusercontent.com',
     iosClientId: '751038134165-jark75jqe7607hthlgabjpvln83dt4gs.apps.googleusercontent.com',
     iosBundleId: 'com.example.noteBox',
   );
+
 }

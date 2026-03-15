@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 
+import '../../services/user_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+
+//学年・学科を登録する画面
+
 class GradeDepartmentScreen extends StatefulWidget {
   const GradeDepartmentScreen({super.key});
 
@@ -30,26 +36,39 @@ class _GradeDepartmentScreenState extends State<GradeDepartmentScreen> {
   ];
 
   // 保存ボタンの処理（今はUIだけ）
-  Future<void> _saveGradeDepartment() async {
-    try {
-      if (selectedGrade == null || selectedDepartment == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("学年と学科を選択してください")),
-        );
-        return;
-      }
+Future<void> _saveGradeDepartment() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return; // 未ログインは処理中断
 
-      // ここにFirestore保存や画面遷移を追加可能
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("選択: $selectedGrade / $selectedDepartment"),
-        ),
-      );
-
-    } catch (e) {
-      debugPrint("学年・学科の保存に失敗しました。$e");
-    }
+  if (selectedGrade == null || selectedDepartment == null) {   //未入力なら返す。
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("学年と学科を選択してください")),
+    );
+    return;
   }
+
+  try {
+    await UserService().saveGradeDepartment(    //選択された学年・学科を更新。
+      uid: user.uid,
+      grade: selectedGrade!,
+      department: selectedDepartment!,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("選択: $selectedGrade / $selectedDepartment"),
+      ),
+    );
+
+    // ここで画面遷移する場合は Navigator.push(...)
+
+  } catch (e) {
+    debugPrint("学年・学科の保存に失敗しました: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("保存に失敗しました")),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {

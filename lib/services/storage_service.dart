@@ -4,9 +4,14 @@ import '../utils/image_utils.dart';
 
 import 'package:flutter/foundation.dart';
 
+//①プロフィール画像を JPEG形式に変換してからストレージにアップロードする関数
+
 class StorageService {
   final _storage = FirebaseStorage.instance;
+  
 
+
+  // 画像をアップロードする関数
   Future<String> uploadProfileImage (String uid, File image) async {
     try{
 

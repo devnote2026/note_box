@@ -5,8 +5,8 @@ import '../../services/auth_service.dart';
 
 import '../../widgets/bottom_navbar.dart';
 
-class PostScreen extends StatelessWidget {
-  const PostScreen({super.key});
+class LibraryScreen extends StatelessWidget {
+  const LibraryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class PostScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Center(
         child: ElevatedButton(
-          child: Text("(ライブラリ)サインアウトする"),
+          child: Text("ライブラリ"),
           onPressed: () async{
             try{
                _authService.signOut();

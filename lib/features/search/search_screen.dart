@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
+import '../../widgets/bottom_navbar.dart';
+
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
 
@@ -12,6 +14,7 @@ class SearchScreen extends StatelessWidget {
     final _authService = AuthService();
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: ElevatedButton(
           child: Text("サインアウトする"),
@@ -25,7 +28,9 @@ class SearchScreen extends StatelessWidget {
             }
           },
         )
-      )
+      ),
+
+      bottomNavigationBar: BottomNavbar(),
     );
   }
 }

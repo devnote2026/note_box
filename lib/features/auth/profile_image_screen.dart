@@ -10,6 +10,7 @@ import '../../widgets/custom_button.dart';
 
 
 // 画像を選択してストレージにアップロード、Firestoreに画像のURLを保存する。
+//[修正点あり] 130行当たり 遷移先の画面パス
 
 class ProfileImageScreen extends StatefulWidget {
   const ProfileImageScreen({super.key});
@@ -127,7 +128,7 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
 
 
                         if(!mounted) return;
-                        context.go('/search');
+                        context.go('/search');     ////👈最初に標示する画面にする！
                       }
 
                       catch(e){

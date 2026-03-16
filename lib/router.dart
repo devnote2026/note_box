@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+//[修正点あり]  /post → /search  68行目当たり
+
 
 //画面
 import './features/auth/login_screen.dart';    // ログイン画面
@@ -11,6 +13,7 @@ import './features/auth/nickname_screen.dart'; // ニックネーム入力画面
 import './features/search/search_screen.dart'; // 検索画面
 import './features/auth/grade_department_screen.dart'; //学年・学科登録画面
 import './features/auth/profile_image_screen.dart';    //プロフィール画像登録画面
+import './features/post/post_screen.dart';
 
 
 class AppRouter {
@@ -97,8 +100,12 @@ redirect: (context, state) async {
         GoRoute(
           path: '/profile_image',
           builder: (context, state) => ProfileImageScreen(),
-        )
+        ),
 
+        GoRoute(
+          path: '/post',
+          builder: (context, state) => PostScreen(),
+          )
       ]
     );
 

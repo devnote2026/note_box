@@ -5,6 +5,8 @@ import '../../main.dart';
 import '../../widgets/shutter_button.dart';
 import '../../widgets/bottom_navbar.dart';
 
+import './post_screen.dart';
+
 import '../../services/image_picker_service.dart';
 
 //投稿画面の１画面目。カメラ画面。
@@ -80,6 +82,13 @@ class _CameraScreenState extends State<CameraScreen> {
 
       if (!mounted) return;
       if (imageFile == null) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PostScreen(imageFile: imageFile)
+        )
+      );
     }
 
     catch(e){

@@ -15,7 +15,6 @@ import './features/auth/profile_image_screen.dart';    //プロフィール画�
 
 
 //メイン４画面
-import './features/post/post_screen.dart';             //投稿画面
 import './features/library/library_screen.dart';       //ライブラリ画面
 import './features/mypage/mypage_screen.dart';         //マイページ画面
 import './features/search/search_screen.dart';         //検索画面
@@ -120,12 +119,6 @@ redirect: (context, state) async {
           builder: (context, state) => ProfileImageScreen(),
         ),
 
-        GoRoute(
-          path: '/post',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: PostScreen()
-          ),
-          ),
 
         GoRoute(
           path: '/library',

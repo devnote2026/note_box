@@ -1,36 +1,22 @@
-// ノートを検索する画面
-
+import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
 
-import '../../widgets/bottom_navbar.dart';
+class PostScreen extends StatefulWidget {
 
-class PostScreen extends StatelessWidget {
-  const PostScreen({super.key});
+  final File imageFile;
+
+  const PostScreen({
+    super.key,required,
+    required this.imageFile
+     });
 
   @override
+  State<PostScreen> createState() => _PostScreenState();
+}
+
+class _PostScreenState extends State<PostScreen> {
+  @override
   Widget build(BuildContext context) {
-
-    final _authService = AuthService();
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: ElevatedButton(
-          child: Text("(ライブラリ)サインアウトする"),
-          onPressed: () async{
-            try{
-               _authService.signOut();
-            }
-
-            catch(e){
-              debugPrint("サインアウトできませんでした。$e");
-            }
-          },
-        )
-      ),
-
-      bottomNavigationBar: BottomNavbar(),
-    );
+    return const Placeholder();
   }
 }

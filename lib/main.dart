@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'app.dart';
+import 'package:camera/camera.dart';
 
 late List<CameraDescription> cameras;
 
@@ -11,12 +12,19 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-
-    await cameras = await availableCameras();
   }
 
   catch(e){
     debugPrint("Firebase初期化失敗: $e");
+    return;
+  }
+
+  try{
+    cameras = await availableCameras();
+  }
+
+  catch(e){
+    debugPrint("カメラ初期化失敗$e");
     return;
   }
 

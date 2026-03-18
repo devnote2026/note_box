@@ -12,6 +12,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    debugPrint("Firebase初期化成功✅");
   }
 
   catch(e){
@@ -21,6 +22,7 @@ void main() async {
 
   try{
     cameras = await availableCameras();
+    debugPrint("カメラ初期化成功✅");
   }
 
   catch(e){

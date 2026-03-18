@@ -10,7 +10,7 @@ class BottomNavbar extends StatelessWidget {
     final location = GoRouterState.of(context).uri.toString();
     debugPrint("現在のURL: $location");
 
-    if (location.startsWith('/post')) return 0;
+    if (location.startsWith('/camera')) return 0;
     if (location.startsWith('/search')) return 1;
     if (location.startsWith('/library')) return 2;
     if (location.startsWith('/mypage')) return 3;
@@ -22,7 +22,7 @@ class BottomNavbar extends StatelessWidget {
 
     switch (index) {
       case 0:
-        context.go('/post');
+        context.go('/camera');
         debugPrint("投稿画面に移動しました");
         break;
 

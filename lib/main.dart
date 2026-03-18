@@ -3,13 +3,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 
+late List<CameraDescription> cameras;
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   try{
-    WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    await cameras = await availableCameras();
   }
 
   catch(e){

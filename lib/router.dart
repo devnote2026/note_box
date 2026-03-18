@@ -18,7 +18,8 @@ import './features/auth/profile_image_screen.dart';    //プロフィール画�
 import './features/post/post_screen.dart';             //投稿画面
 import './features/library/library_screen.dart';       //ライブラリ画面
 import './features/mypage/mypage_screen.dart';         //マイページ画面
-import './features/search/search_screen.dart'; // 検索画面
+import './features/search/search_screen.dart';         //検索画面
+import './features/post/camera_screen.dart';           //カメラ画面
 
 
 
@@ -137,6 +138,13 @@ redirect: (context, state) async {
           path: '/mypage',
           pageBuilder: (context, state) => const NoTransitionPage(
             child: MypageScreen()
+          ),
+        ),
+
+        GoRoute(
+          path: '/camera',
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: CameraScreen()
           ),
         )
       ]

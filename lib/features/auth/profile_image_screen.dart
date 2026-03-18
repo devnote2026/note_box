@@ -23,7 +23,7 @@ class ProfileImageScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileImageScreen> {
 
   File? image;                                     //選択された画像を管理する変数。
-  final ImagePicker _picker = ImagePicker();       //写真ライブラリを操作するクラス。
+  final ImagePicker picker = ImagePicker();       //写真ライブラリを操作するクラス。
   final profileService = ProfileService(StorageService());
 
 

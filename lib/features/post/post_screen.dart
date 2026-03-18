@@ -18,13 +18,15 @@ class _PostScreenState extends State<PostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      backgroundColor: Colors.black,
       body: SafeArea(                                  //安全なエリア
+        
         child: Column(
           children: [
 
             Expanded(
               child: Stack(
+                
                 children: [
 
             Positioned.fill(
@@ -58,13 +60,16 @@ class _PostScreenState extends State<PostScreen> {
                 ],
               ),
             ),
-
-            Padding(
-              padding: EdgeInsetsGeometry.all(120),
-              child: Container(
-                color: Colors.black,
+            
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              child: Padding(
+                padding: EdgeInsetsGeometry.all(120),
+                
               ),
-            )
+            ),
+            
           ],
         )
       )      

@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class BottomNavbar extends StatelessWidget {
-
   const BottomNavbar({super.key});
 
   int _getCurrentIndex(BuildContext context) {
-
     final location = GoRouterState.of(context).uri.toString();
     debugPrint("現在のURL: $location");
 
@@ -19,7 +17,6 @@ class BottomNavbar extends StatelessWidget {
   }
 
   void _onTap(BuildContext context, int index) {
-
     switch (index) {
       case 0:
         context.go('/camera');
@@ -45,44 +42,36 @@ class BottomNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final currentIndex = _getCurrentIndex(context);
 
-    return BottomNavigationBar(
-
-      selectedItemColor: Colors.lightBlue,
-      unselectedItemColor: Colors.black,
-      backgroundColor: Colors.white,
-
-      type: BottomNavigationBarType.fixed,
-
-      currentIndex: currentIndex,
-
-      onTap: (index) => _onTap(context, index),
-
-      items: const [
-
-        BottomNavigationBarItem(
-          icon: Icon(Icons.add_box,),
-          label: "投稿",
-        ),
-
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search,),
-          label: "検索",
-        ),
-
-        BottomNavigationBarItem(
-          icon: Icon(Icons.library_books,),
-          label: "ライブラリ",
-        ),
-
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person,),
-          label: "マイページ",
-        ),
-
-      ],
+    return Container(
+      color: Colors.red, // ← 余白を埋めるために追加
+      child: BottomNavigationBar(
+        selectedItemColor: Colors.lightBlue,
+        unselectedItemColor: Colors.black,
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        currentIndex: currentIndex,
+        onTap: (index) => _onTap(context, index),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box),
+            label: "投稿",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: "検索",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.library_books),
+            label: "ライブラリ",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "マイページ",
+          ),
+        ],
+      ),
     );
   }
 }

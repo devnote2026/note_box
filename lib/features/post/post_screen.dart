@@ -27,12 +27,16 @@ class _PostScreenState extends State<PostScreen> {
               child: Stack(
                 children: [
 
-                  Positioned.fill(
-                    child: Image.file(
-                      widget.imageFile,
-                      fit:BoxFit.cover
-                    )
-                  ),
+            Positioned.fill(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.file(
+                  widget.imageFile,
+                  fit: BoxFit.contain, // 🔥 cover → contain に変更（トリミング防止）
+                ),
+              ),
+            ),
 
                   //戻るボタン
                   Positioned(

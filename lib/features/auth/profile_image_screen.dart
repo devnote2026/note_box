@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/storage_service.dart';
 import '../../services/profile_service.dart';
+import '../../services/image_picker_service.dart';
 
 import '../../widgets/custom_button.dart';
 
@@ -26,31 +27,29 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
   final profileService = ProfileService(StorageService());
 
 
-  Future<void> pickImage() async {                 //写真ライブラリから画像を取得する関数
-    try{
+Future<void> pickImage() async {
+  try{
 
-      final pickedFile = await _picker.pickImage(  //選択された画像を pickedFile に保存。
-        source: ImageSource.gallery,
-        maxWidth: 800
-      );
+    final pickedImage = await ImagePickerService().pickImage();
 
-      if (pickedFile == null) return;
+    if (pickedImage == null) return;
 
-      if(!mounted) return;
+    if(!mounted) return;
 
-      setState(() {
-        image = File(pickedFile.path);
-      });
-    }
+    setState(() {
+      image = pickedImage;
+    });
 
-    catch(e){
-      debugPrint("写真ライブラリから画像の取得に失敗: $e");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("画像の保存に失敗しました"))
-      );
-    }
   }
+
+  catch(e){
+    debugPrint("フォトライブラリから画像の取得に失敗しました。$e");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("画像の保存に失敗しました"))
+    );
+  }
+}
 
 
 

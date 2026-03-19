@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:note_box/services/storage_service.dart';
 
 import '../../services/profile_service.dart';
-import '../../features/auth/grade_department_screen.dart'; 
+import '../../widgets/grade_department_change_widget.dart';
 
 class PostScreen extends StatefulWidget {
   final File imageFile;
@@ -37,6 +37,8 @@ class _PostScreenState extends State<PostScreen> {
       grade = data['grade'];
       department = data['department'];
     });
+
+    debugPrint("学年: $grade,学科: $department");
   }
 
   @override
@@ -107,21 +109,23 @@ class _PostScreenState extends State<PostScreen> {
                   IconButton(
                     icon: const Icon(Icons.settings),
                     onPressed: () async {
+
+                      //settingsがタップされた時の処理
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const GradeDepartmentScreen(),
-                        ),
+                          builder:(context) => const GradeDepartmentChangeWidget()
+                        )
                       );
 
-                      // 🔥 戻ってきた値を反映
-                      if (result != null) {
-                        setState(() {
-                          grade = result['grade'];
-                          department = result['department'];
-                        });
-                      }
+                      if(!mounted || result==null) return;
+
+                      setState(() {
+                        grade = result['grade'];
+                        department = result['department'];
+                      });
+
+                      debugPrint("学年: $grade,学科: $department に変更");
                     },
                   ),
                 ],

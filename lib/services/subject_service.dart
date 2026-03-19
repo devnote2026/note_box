@@ -6,7 +6,9 @@ class SubjectService {
 
   Future<List<String>> getSubjects (String grade, String department) async {
 
-    final docId = '${grade}_$department';
+    final fixedGrade = grade.replaceAll("年", "");
+    final fixedDepartment = department.replaceAll("工学科", "");
+    final docId = '${fixedGrade}_$fixedDepartment';
 
     final doc = await FirebaseFirestore.instance
                                        .collection("subjects")

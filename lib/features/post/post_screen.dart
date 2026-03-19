@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:note_box/services/storage_service.dart';
+import 'package:note_box/widgets/subjects_list.dart';
 
 import '../../services/profile_service.dart';
 import '../../widgets/grade_department_change_widget.dart';
@@ -20,6 +21,7 @@ class PostScreen extends StatefulWidget {
 class _PostScreenState extends State<PostScreen> {
   String? grade;
   String? department;
+  String? subject;
 
   @override
   void initState() {
@@ -40,6 +42,8 @@ class _PostScreenState extends State<PostScreen> {
 
     debugPrint("学年: $grade,学科: $department");
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +135,18 @@ class _PostScreenState extends State<PostScreen> {
                 ],
               ),
             ),
+
+            if(grade != null && department != null)
+             SubjectsList(
+              key: UniqueKey(),
+              grade: grade!,
+              department: department!,
+              onSubjectSelected: (selectedSubject){
+                setState(() {
+                  subject = selectedSubject;
+                });
+              },
+             )
           ],
         ),
       ),

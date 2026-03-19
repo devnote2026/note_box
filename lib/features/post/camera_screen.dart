@@ -86,7 +86,7 @@ class _CameraScreenState extends State<CameraScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PostScreen(imageFile: imageFile)
+          builder: (context) => PostScreen(imageFile: imageFile,)
         )
       );
     }

@@ -31,7 +31,7 @@ class _GradeDepartmentScreenState extends State<GradeDepartmentScreen> {
   final List<String> departments = [
     "電子制御工学科",
     "電気工学科",
-    "物質科学工学科",
+    "物質化学工学科",
     "機械工学科",
     "情報工学科",
   ];

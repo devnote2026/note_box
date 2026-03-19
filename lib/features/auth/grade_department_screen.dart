@@ -26,7 +26,6 @@ class _GradeDepartmentScreenState extends State<GradeDepartmentScreen> {
     "2年",
     "3年",
     "4年",
-    "5年",
   ];
 
   final List<String> departments = [

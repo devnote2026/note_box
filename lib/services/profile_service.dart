@@ -23,6 +23,7 @@ class ProfileService {
                                  .get();
     
     return doc.data()!;
+    
   }
 
 

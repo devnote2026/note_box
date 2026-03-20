@@ -1,3 +1,4 @@
+import 'dart:io'; 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import '../../main.dart';
@@ -70,7 +71,38 @@ class _CameraScreenState extends State<CameraScreen> {
   }
   
   Future<void> _takePicture() async {            //撮影された時の処理
-    
+    if(controller == null) return;
+    if(_isTakingPicture) return;
+
+    try{
+      _isTakingPicture = true;
+
+      await _initializeControllerFuture;
+      final image = await controller!.takePicture();
+      final file = File(image.path);
+      
+      if(!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PostScreen(imageFile: file),
+        )
+      );
+
+    }
+
+    catch(e){
+      debugPrint("撮影に失敗しました。");
+
+      if(!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("撮影に失敗しました")),
+      );
+    } finally{
+      _isTakingPicture = false;
+    }
 
   }
 

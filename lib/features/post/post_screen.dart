@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:note_box/services/profile_storage_service.dart';
 import 'package:note_box/services/post_storage_service.dart';
+import 'package:note_box/utils/image_utils.dart';
 import 'package:note_box/widgets/subjects_list.dart';
 
 import '../../services/profile_service.dart';
@@ -77,8 +78,13 @@ class _PostScreenState extends State<PostScreen> {
     try {
       final postService = PostService(PostStorageService());
 
-      await postService.createPost(
-        imageFile: widget.imageFile,
+      final compressedFile = await ImageUtils.convertToJpg(widget.imageFile);
+
+      if(!mounted) return;
+      Navigator.pop(context,true);
+
+       postService.createPost(
+        imageFile: compressedFile,
         grade: grade!,
         department: department!,
         subject: subject!,
@@ -86,10 +92,6 @@ class _PostScreenState extends State<PostScreen> {
         term: term,
       );
 
-      if (!mounted) return;
-
-      /// 🔥 成功 → 戻る
-      Navigator.pop(context, true);
     } catch (e) {
       showError("投稿に失敗しました");
     } finally {

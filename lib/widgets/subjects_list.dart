@@ -97,7 +97,7 @@ class _SubjectsListState extends State<SubjectsList> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 side: BorderSide(
-                  color: isSelected ? Colors.white : Colors.black
+                  color: Colors.black
                 ),
                 backgroundColor:
                     isSelected ? Colors.black :  Colors.white,

@@ -6,6 +6,8 @@ import 'package:note_box/widgets/subjects_list.dart';
 import '../../services/profile_service.dart';
 import '../../widgets/grade_department_change_widget.dart';
 import '../../widgets/note_type_selector.dart';
+import '../../widgets/term_selector.dart';
+import '../../widgets/custom_button.dart';
 
 class PostScreen extends StatefulWidget {
   final File imageFile;
@@ -23,7 +25,8 @@ class _PostScreenState extends State<PostScreen> {
   String? grade;
   String? department;
   String? subject;
-  String? note_type = '授業ノート';
+  String? noteType = '授業ノート';
+  String? term ;
 
   @override
   void initState() {
@@ -67,7 +70,6 @@ Widget build(BuildContext context) {
                   ),
                 ),
 
-                // 削除ボタン
                 Positioned(
                   bottom: MediaQuery.of(context).padding.bottom + 12,
                   right: 16,
@@ -98,7 +100,7 @@ Widget build(BuildContext context) {
             ),
           ),
 
-          // 🔥 下の白エリア
+          // 🔥 下エリア
           Expanded(
             child: Container(
               width: double.infinity,
@@ -117,7 +119,7 @@ Widget build(BuildContext context) {
               child: Column(
                 children: [
 
-                  // 🔥 学科・学年 + 設定 + セグメント（2段構成）
+                  // 🔥 上部情報 + セグメント
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -171,13 +173,13 @@ Widget build(BuildContext context) {
 
                         const SizedBox(height: 12),
 
-                        // 2行目（セグメント）
+                        // 2行目：ノートタイプ
                         NoteTypeSelector(
-                          initialValue: note_type!,
+                          initialValue: noteType!,
                           onChanged: (value) {
                             setState(() {
-                              note_type = value;
-                              debugPrint(note_type);
+                              noteType = value;
+                              debugPrint(noteType);
                             });
                           },
                         ),
@@ -187,7 +189,7 @@ Widget build(BuildContext context) {
 
                   const Divider(height: 1),
 
-                  // 🔥 スクロールエリア
+                  // 🔥 フィルター群（まとめる）
                   Expanded(
                     child: ListView(
                       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -203,6 +205,23 @@ Widget build(BuildContext context) {
                               });
                             },
                           ),
+
+                        const SizedBox(height: 12),
+
+                        // 🔥 TermSelectorをここに入れる（自然な流れ）
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: TermSelector(
+                            enabled: noteType == "過去問",
+                            initialValue: term,
+                            onTermSelected: (value) {
+                              setState(() {
+                                term = value;
+                                debugPrint(term);
+                              });
+                            },
+                          ),
+                        )
                       ],
                     ),
                   ),

@@ -96,8 +96,11 @@ class _SubjectsListState extends State<SubjectsList> {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
+                side: BorderSide(
+                  color: isSelected ? Colors.white : Colors.black
+                ),
                 backgroundColor:
-                    isSelected ? Colors.blue : Colors.grey,
+                    isSelected ? Colors.black :  Colors.white,
               ),
               onPressed: () {                                       //アイテムが選択された時の処理
                 setState(() {
@@ -106,7 +109,7 @@ class _SubjectsListState extends State<SubjectsList> {
 
                 widget.onSubjectSelected(subject);
               },
-              child: Text(subject),
+              child: Text(subject,style: TextStyle(color: isSelected ? Colors.white : Colors.black),),
             ),
           );
         }).toList(),

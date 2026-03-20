@@ -43,8 +43,6 @@ class _PostScreenState extends State<PostScreen> {
     debugPrint("学年: $grade,学科: $department");
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,18 +67,24 @@ class _PostScreenState extends State<PostScreen> {
 
                   // 削除ボタン
                   Positioned(
-                    bottom: MediaQuery.of(context).padding.bottom + 2,
+                    bottom: MediaQuery.of(context).padding.bottom + 12,
                     right: 16,
                     child: Container(
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 8,
+                          ),
+                        ],
                       ),
                       child: IconButton(
                         icon: const Icon(
                           Icons.delete,
                           color: Colors.black,
-                          size: 40,
+                          size: 32,
                         ),
                         onPressed: () {
                           Navigator.pop(context);
@@ -92,61 +96,108 @@ class _PostScreenState extends State<PostScreen> {
               ),
             ),
 
-            // 🔥 下の白エリア
-            Container(
-              width: double.infinity,
-              color: Colors.white,
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // 学年・学科
-                  Text(
-                    "${department ?? ''}  ${grade ?? ''}",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
+            // 🔥 下の白エリア（改善）
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 10,
                     ),
-                  ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // 👇 つまみ（ボトムシート感）
+                    Container(
+                      margin: const EdgeInsets.only(top: 8, bottom: 8),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
 
-                  // 設定ボタン
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    onPressed: () async {
+                    // 🔹 学年・学科 + 設定
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "${department ?? ''}  ${grade ?? ''}",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.settings),
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const GradeDepartmentChangeWidget(),
+                                  ),
+                                );
 
-                      //settingsがタップされた時の処理
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:(context) => const GradeDepartmentChangeWidget()
-                        )
-                      );
+                                if (!mounted || result == null) return;
 
-                      if(!mounted || result==null) return;
+                                setState(() {
+                                  grade = result['grade'];
+                                  department = result['department'];
+                                });
 
-                      setState(() {
-                        grade = result['grade'];
-                        department = result['department'];
-                      });
+                                debugPrint("学年: $grade,学科: $department に変更");
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                      debugPrint("学年: $grade,学科: $department に変更");
-                    },
-                  ),
-                ],
+                    const Divider(height: 1),
+
+                    // 🔥 スクロールエリア
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        children: [
+                          if (grade != null && department != null)
+                            SubjectsList(
+                              grade: grade!,
+                              department: department!,
+                              onSubjectSelected: (selectedSubject) {
+                                setState(() {
+                                  subject = selectedSubject;
+                                  debugPrint(subject);
+                                });
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-
-            if(grade != null && department != null)
-             SubjectsList(
-              key: UniqueKey(),
-              grade: grade!,
-              department: department!,
-              onSubjectSelected: (selectedSubject){
-                setState(() {
-                  subject = selectedSubject;
-                });
-              },
-             )
           ],
         ),
       ),

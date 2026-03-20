@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/storage_service.dart';
+import '../../services/profile_storage_service.dart';
 import '../../services/profile_service.dart';
 import '../../services/image_picker_service.dart';
 
@@ -24,7 +24,7 @@ class _ProfileScreenState extends State<ProfileImageScreen> {
 
   File? image;                                     //選択された画像を管理する変数。
   final ImagePicker picker = ImagePicker();       //写真ライブラリを操作するクラス。
-  final profileService = ProfileService(StorageService());
+  final profileService = ProfileService(ProfileStorageService());
 
 
 Future<void> pickImage() async {

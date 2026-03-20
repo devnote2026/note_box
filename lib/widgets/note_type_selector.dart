@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-
-
-// ノートの種類を選択するウィジェット
+import '../constants/note_type.dart';
 
 class NoteTypeSelector extends StatefulWidget {
-  final Function(String) onChanged; // 親に返す
+  final Function(String) onChanged;
   final String initialValue;
 
   const NoteTypeSelector({
     super.key,
     required this.onChanged,
-    this.initialValue = '授業ノート',
+    required this.initialValue,
   });
 
   @override
@@ -20,7 +18,12 @@ class NoteTypeSelector extends StatefulWidget {
 class _SegmentControlState extends State<NoteTypeSelector> {
   late String selected;
 
-  final List<String> items = ['授業ノート', '過去問', '演習'];
+  /// 🔥 内部値（正しいキー）
+  final List<String> values = [
+    NoteType.lesson,
+    NoteType.pastExam,
+    NoteType.practice,
+  ];
 
   @override
   void initState() {
@@ -37,16 +40,18 @@ class _SegmentControlState extends State<NoteTypeSelector> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
-        children: items.map((item) {
-          final isSelected = item == selected;
+        children: values.map((value) {
+          final isSelected = value == selected;
 
           return Expanded(
             child: GestureDetector(
               onTap: () {
                 setState(() {
-                  selected = item;
+                  selected = value;
                 });
-                widget.onChanged(item); // 👈 親に通知
+
+                /// 🔥 親には「英語キー」を返す
+                widget.onChanged(value);
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -56,7 +61,8 @@ class _SegmentControlState extends State<NoteTypeSelector> {
                 ),
                 child: Center(
                   child: Text(
-                    item,
+                    /// 🔥 表示は日本語
+                    NoteType.displayMap[value]!,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: isSelected ? Colors.black : Colors.grey,

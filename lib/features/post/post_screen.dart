@@ -1,12 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:note_box/services/storage_service.dart';
+import 'package:note_box/services/profile_storage_service.dart';
+import 'package:note_box/services/post_storage_service.dart';
 import 'package:note_box/widgets/subjects_list.dart';
 
 import '../../services/profile_service.dart';
+import '../../services/post_service.dart';
 import '../../widgets/grade_department_change_widget.dart';
 import '../../widgets/note_type_selector.dart';
 import '../../widgets/term_selector.dart';
+import '../../constants/note_type.dart';
 import '../../widgets/custom_button.dart';
 
 class PostScreen extends StatefulWidget {
@@ -25,8 +28,10 @@ class _PostScreenState extends State<PostScreen> {
   String? grade;
   String? department;
   String? subject;
-  String? noteType = '授業ノート';
-  String? term ;
+  String? noteType = NoteType.lesson;
+  String? term;
+
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -34,8 +39,9 @@ class _PostScreenState extends State<PostScreen> {
     fetchProfile();
   }
 
+  /// 🔥 プロフィール取得
   Future<void> fetchProfile() async {
-    final profileService = ProfileService(StorageService());
+    final profileService = ProfileService(ProfileStorageService());
     final data = await profileService.getProfile();
 
     if (!mounted) return;
@@ -44,111 +50,136 @@ class _PostScreenState extends State<PostScreen> {
       grade = data['grade'];
       department = data['department'];
     });
+  }
 
-    debugPrint("学年: $grade,学科: $department");
+  /// 🔥 投稿処理（UIから分離）
+  Future<void> handlePost() async {
+    if (isLoading) return;
+
+    /// 🔥 バリデーション
+    if (grade == null ||
+        department == null ||
+        subject == null ||
+        noteType == null) {
+      showError("未入力の項目があります");
+      return;
+    }
+
+    if (noteType == NoteType.pastExam && term == null) {
+      showError("期間を選択してください");
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final postService = PostService(PostStorageService());
+
+      await postService.createPost(
+        imageFile: widget.imageFile,
+        grade: grade!,
+        department: department!,
+        subject: subject!,
+        noteType: noteType!,
+        term: term,
+      );
+
+      if (!mounted) return;
+
+      /// 🔥 成功 → 戻る
+      Navigator.pop(context, true);
+    } catch (e) {
+      showError("投稿に失敗しました");
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.black,
-    body: SafeArea(
-      child: Column(
-        children: [
-          // 🔥 画像エリア
-          Expanded(
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: InteractiveViewer(
-                    minScale: 0.5,
-                    maxScale: 4.0,
-                    child: Image.file(
-                      widget.imageFile,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-
-                Positioned(
-                  bottom: MediaQuery.of(context).padding.bottom + 12,
-                  right: 16,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.delete,
-                        color: Colors.black,
-                        size: 32,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Column(
+          children: [
+            /// 🔥 画像エリア
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: InteractiveViewer(
+                      minScale: 0.5,
+                      maxScale: 4.0,
+                      child: Image.file(
+                        widget.imageFile,
+                        fit: BoxFit.contain,
                       ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          // 🔥 下エリア
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
+                  /// 削除ボタン
+                  Positioned(
+                    bottom: MediaQuery.of(context).padding.bottom + 12,
+                    right: 16,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
-              child: Column(
-                children: [
+            ),
 
-                  // 🔥 上部情報 + セグメント
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 1行目
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                "${department ?? ''}  ${grade ?? ''}",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w600,
+            /// 🔥 下エリア
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    /// 上部情報
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "${department ?? ''}  ${grade ?? ''}",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
 
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: IconButton(
+                              IconButton(
                                 icon: const Icon(Icons.settings),
                                 onPressed: () async {
                                   final result = await Navigator.push(
@@ -167,71 +198,74 @@ Widget build(BuildContext context) {
                                   });
                                 },
                               ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          /// ノートタイプ
+                          NoteTypeSelector(
+                            initialValue: noteType ?? NoteType.lesson,
+                            onChanged: (value) {
+                              setState(() {
+                                noteType = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const Divider(),
+
+                    /// 🔥 フィルター
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          if (grade != null && department != null)
+                            SubjectsList(
+                              grade: grade!,
+                              department: department!,
+                              onSubjectSelected: (value) {
+                                setState(() {
+                                  subject = value;
+                                });
+                              },
                             ),
-                          ],
-                        ),
 
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 12),
 
-                        // 2行目：ノートタイプ
-                        NoteTypeSelector(
-                          initialValue: noteType!,
-                          onChanged: (value) {
-                            setState(() {
-                              noteType = value;
-                              debugPrint(noteType);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Divider(height: 1),
-
-                  // 🔥 フィルター群（まとめる）
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      children: [
-                        if (grade != null && department != null)
-                          SubjectsList(
-                            grade: grade!,
-                            department: department!,
-                            onSubjectSelected: (selectedSubject) {
-                              setState(() {
-                                subject = selectedSubject;
-                                debugPrint(subject);
-                              });
-                            },
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: TermSelector(
+                              enabled: noteType == NoteType.pastExam,
+                              initialValue: term,
+                              onTermSelected: (value) {
+                                setState(() {
+                                  term = value;
+                                });
+                              },
+                            ),
                           ),
-
-                        const SizedBox(height: 12),
-
-                        // 🔥 TermSelectorをここに入れる（自然な流れ）
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: TermSelector(
-                            enabled: noteType == "過去問",
-                            initialValue: term,
-                            onTermSelected: (value) {
-                              setState(() {
-                                term = value;
-                                debugPrint(term);
-                              });
-                            },
-                          ),
-                        )
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+
+                    /// 🔥 投稿ボタン（ここ追加）
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: CustomButton(
+                        text: isLoading ? "投稿中..." : "投稿する",
+                        onPressed: handlePost,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

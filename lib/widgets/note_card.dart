@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:note_box/features/search/viewer_screen.dart';
 import '../constants/note_type.dart';
 
 class NoteCard extends StatelessWidget {
@@ -39,6 +40,18 @@ class NoteCard extends StatelessWidget {
         )
       ),
       child: ListTile(
+
+        onTap: (){
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ViewerScreen(
+                noteId: note.id,
+                subject: subject,
+              )
+            )
+          );
+        },
         contentPadding: const EdgeInsets.all(12),
 
         // 📚 左アイコン

@@ -74,7 +74,7 @@ redirect: (context, state) async {
     if (
       location == '/login' ||
       location == '/nickname' ||
-      location == '/grade_depratment' ||
+      location == '/grade_department' ||
       location == '/profile_image'
     ) {
       return '/search';

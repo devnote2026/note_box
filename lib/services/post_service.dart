@@ -48,6 +48,15 @@ class PostService {
 
     final uid = user.uid;
 
+    final userDoc = await _firestore
+                            .collection("users")
+                            .doc(uid)
+                            .get();
+   
+    final data = userDoc.data() ?? {};
+    final nickname = data['nickname'] ?? "名無し";
+    final profileImageUrl = data['profileImageUrl'];
+
     final noteId = _buildNoteId(
       uid: uid,
       grade: grade,
@@ -88,6 +97,7 @@ class PostService {
             'createdAt': FieldValue.serverTimestamp(),
             'updatedAt': FieldValue.serverTimestamp(),
             'postCount': 1,
+
           });
         } else {
           tx.update(noteRef, {
@@ -102,6 +112,8 @@ class PostService {
           'imageUrl': imageUrl,
           'term': noteType == "past_exam" ? term : null,
           'createdAt': FieldValue.serverTimestamp(),
+          'nickname': nickname,
+          'profileImageUrl': profileImageUrl
         });
 
         /// 🔥 user統計
@@ -114,6 +126,8 @@ class PostService {
           'noteId': noteId,
           'imageUrl': imageUrl,
           'createdAt': FieldValue.serverTimestamp(),
+          'nickname': nickname,
+          'profileImageUrl': profileImageUrl
         });
       });
     } catch (e) {

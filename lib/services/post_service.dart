@@ -89,6 +89,8 @@ class PostService {
         if (!noteSnap.exists) {
           tx.set(noteRef, {
             'uid': uid,
+            'nickname': nickname,
+            'profileImageUrl': profileImageUrl,
             'grade': grade,
             'department': department,
             'subject': subject,

@@ -12,6 +12,7 @@ import '../../services/note_service.dart';
 import '../../widgets/search_header.dart';
 import '../../widgets/subject_selector.dart';
 import '../../widgets/note_type_selector.dart';
+import '../../widgets/note_card.dart';
 
 import '../../constants/note_type.dart';
 
@@ -211,14 +212,11 @@ Widget build(BuildContext context) {
         if (notes.isEmpty)
           const Center(child: Text("ノートがありません")),
 
-        ...notes.map((note) {
-          return Card(
-            child: ListTile(
-              title: Text(note["grade"] ?? ""),
-              subtitle: Text(note["department"] ?? ""),
-            ),
-          );
-        }),
+        ...notes.map((note){
+          return NoteCard(note: note);
+        })
+
+        
       ],
     ),
   );

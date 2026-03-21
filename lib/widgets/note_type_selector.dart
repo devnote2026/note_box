@@ -1,35 +1,22 @@
 import 'package:flutter/material.dart';
 import '../constants/note_type.dart';
 
-class NoteTypeSelector extends StatefulWidget {
+class NoteTypeSelector extends StatelessWidget {
   final Function(String) onChanged;
-  final String initialValue;
+  final String selected;
 
   const NoteTypeSelector({
     super.key,
     required this.onChanged,
-    required this.initialValue,
+    required this.selected,
   });
 
-  @override
-  State<NoteTypeSelector> createState() => _SegmentControlState();
-}
-
-class _SegmentControlState extends State<NoteTypeSelector> {
-  late String selected;
-
-  /// 🔥 内部値（正しいキー）
-  final List<String> values = [
+  /// 内部値（キー）
+  static const List<String> values = [
     NoteType.lesson,
     NoteType.pastExam,
     NoteType.practice,
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    selected = widget.initialValue;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,12 +33,8 @@ class _SegmentControlState extends State<NoteTypeSelector> {
           return Expanded(
             child: GestureDetector(
               onTap: () {
-                setState(() {
-                  selected = value;
-                });
-
-                /// 🔥 親には「英語キー」を返す
-                widget.onChanged(value);
+                /// 🔥 状態は持たない
+                onChanged(value);
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -61,7 +44,6 @@ class _SegmentControlState extends State<NoteTypeSelector> {
                 ),
                 child: Center(
                   child: Text(
-                    /// 🔥 表示は日本語
                     NoteType.displayMap[value]!,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,

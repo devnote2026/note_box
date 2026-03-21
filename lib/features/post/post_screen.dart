@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:note_box/services/profile_storage_service.dart';
 import 'package:note_box/services/post_storage_service.dart';
 import 'package:note_box/utils/image_utils.dart';
-import 'package:note_box/widgets/subjects_list.dart';
+import 'package:note_box/widgets/subject_selector.dart';
 
 import '../../services/profile_service.dart';
 import '../../services/post_service.dart';
+import '../../services/subject_service.dart';
 import '../../widgets/grade_department_change_widget.dart';
 import '../../widgets/note_type_selector.dart';
 import '../../widgets/term_selector.dart';
 import '../../constants/note_type.dart';
 import '../../widgets/custom_button.dart';
+
+//ノートの情報を登録する画面
 
 class PostScreen extends StatefulWidget {
   final File imageFile;
@@ -34,6 +37,9 @@ class _PostScreenState extends State<PostScreen> {
 
   bool isLoading = false;
 
+  List<String> subjects = [];
+  bool isLoadingSubjects = false;
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +57,8 @@ class _PostScreenState extends State<PostScreen> {
       grade = data['grade'];
       department = data['department'];
     });
+
+    await fetchSubjects();
   }
 
   /// 🔥 投稿処理（UIから分離）
@@ -103,6 +111,34 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
+  
+  Future<void> fetchSubjects() async{
+
+    if(grade == null || department == null) return;
+
+    setState(() {
+      isLoadingSubjects = true;
+    });
+
+    try{
+      final result = await SubjectService().getSubjects(grade!, department!);
+
+      if(!mounted) return;
+
+      setState(() {
+        subjects = result;
+        subject = null;
+        isLoadingSubjects = false;
+      });
+    }
+
+    catch(e){
+      setState(() {
+        subjects = [];
+        isLoadingSubjects = false;
+      });
+    }
+  }
   void showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -198,6 +234,8 @@ class _PostScreenState extends State<PostScreen> {
                                     grade = result['grade'];
                                     department = result['department'];
                                   });
+
+                                  await fetchSubjects();
                                 },
                               ),
                             ],
@@ -207,10 +245,11 @@ class _PostScreenState extends State<PostScreen> {
 
                           /// ノートタイプ
                           NoteTypeSelector(
-                            initialValue: noteType ?? NoteType.lesson,
+                            selected: noteType ?? NoteType.lesson,
                             onChanged: (value) {
                               setState(() {
                                 noteType = value;
+                                term = null;
                               });
                             },
                           ),
@@ -225,10 +264,11 @@ class _PostScreenState extends State<PostScreen> {
                       child: ListView(
                         children: [
                           if (grade != null && department != null)
-                            SubjectsList(
-                              grade: grade!,
-                              department: department!,
-                              onSubjectSelected: (value) {
+                            SubjectSelector(
+                              subjects: subjects,
+                              selectedSubject: subject,
+                              isLoading: isLoadingSubjects,
+                              onSelect:  (value) {
                                 setState(() {
                                   subject = value;
                                 });
@@ -240,14 +280,15 @@ class _PostScreenState extends State<PostScreen> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: TermSelector(
+                              terms:["前期中間","前期末","後期中間","学年末"],
+                              selectedTerm: term,
                               enabled: noteType == NoteType.pastExam,
-                              initialValue: term,
-                              onTermSelected: (value) {
+                              onSelected: (value) {
                                 setState(() {
                                   term = value;
                                 });
                               },
-                            ),
+                            )
                           ),
                         ],
                       ),

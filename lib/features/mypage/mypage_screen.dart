@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../widgets/profile_card.dart';
-import '../../widgets/stats_section.dart';
 import '../../widgets/logout_button.dart';
 import '../../widgets/bottom_navbar.dart';
 
@@ -24,9 +23,7 @@ class MyPageScreen extends StatelessWidget {
         child: Column(
           children: [
             ProfileCard(profileService: profileService), //プロフィールカードにインスタンスを渡す。
-            const SizedBox(height: 16),
-            const StatsSection(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 180),
             const LogoutButton(),
           ],
         ),

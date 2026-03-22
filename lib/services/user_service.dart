@@ -28,7 +28,8 @@ class UserService {
               "profileImageUrl": null,
               "createdAt": FieldValue.serverTimestamp(),
               "gradeDepartmentSaved": false,
-              "isProfileCompleted": false
+              "isProfileCompleted": false,
+              "receivedLabelCount": 0
              }, SetOptions(merge: true));
 
   }

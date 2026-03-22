@@ -99,6 +99,7 @@ class PostService {
             'createdAt': FieldValue.serverTimestamp(),
             'updatedAt': FieldValue.serverTimestamp(),
             'postCount': 1,
+            'labelCount': 0
 
           });
         } else {

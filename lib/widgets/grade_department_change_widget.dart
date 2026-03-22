@@ -23,6 +23,7 @@ class _GradeDepartmentScreenState extends State<GradeDepartmentChangeWidget> {
     "2年",
     "3年",
     "4年",
+    "5年"
   ];
 
   final List<String> departments = [

@@ -35,7 +35,7 @@ class ViewerScreen extends StatelessWidget {
         actions: [
           // ⭐ 重要ラベルボタン
           IconButton(
-            icon: const Icon(Icons.star_border),
+            icon: const Icon(Icons.favorite),
             onPressed: () {
               // TODO: 重要ラベル処理
             },

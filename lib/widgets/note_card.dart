@@ -1,83 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:note_box/features/search/viewer_screen.dart';
+import '../features/search/viewer_screen.dart';
 import '../constants/note_type.dart';
 import '../widgets/label_button.dart';
 
-class NoteCard extends StatefulWidget {
-  final QueryDocumentSnapshot note;
+class NoteCard extends StatelessWidget {
+  final String noteId;
+  final String subject;
+  final String noteType;
+  final String term;
+  final String nickname;
+  final String? profileImageUrl;
+  final DateTime? updatedAt;
 
   const NoteCard({
     super.key,
-    required this.note,
+    required this.noteId,
+    required this.subject,
+    required this.noteType,
+    required this.term,
+    required this.nickname,
+    required this.profileImageUrl,
+    required this.updatedAt,
   });
 
   @override
-  State<NoteCard> createState() => _NoteCardState();
-}
-
-class _NoteCardState extends State<NoteCard> {
-  bool isLabeled = false;
-  bool isLoading = true;
-  bool isProcessing = false;
-
-
-  final _auth = FirebaseAuth.instance;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLabel();
-  }
-
-  Future<void> _loadLabel() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('labeledNotes')
-          .doc(widget.note.id)
-          .get();
-
-      if (!mounted) return;
-
-      setState(() {
-        isLabeled = doc.exists;
-        isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-
-
-  @override
   Widget build(BuildContext context) {
-    final data = widget.note.data() as Map<String, dynamic>;
+    final noteTypeText =
+        NoteType.displayMap[noteType] ?? noteType;
 
-    final nickname = data["nickname"] ?? "名無し";
-    final subject = data["subject"] ?? "";
-    final noteType = data["noteType"] ?? "";
-    final term = data["term"] ?? "";
-    final userImage = data["profileImageUrl"];
-    final updatedAt = data["updatedAt"] as Timestamp?;
+    final titleText = term.isNotEmpty
+        ? "$subjectの$noteTypeText($term)"
+        : "$subjectの$noteTypeText";
 
-    final noteTypeText = NoteType.displayMap[noteType] ?? noteType;
-
-    final titleText = "$subjectの$noteTypeText";
     final timeText = _formatDate(updatedAt);
 
     return Card(
@@ -86,10 +40,7 @@ class _NoteCardState extends State<NoteCard> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(
-          color: Colors.black,
-          width: 1,
-        ),
+        side: const BorderSide(color: Colors.black, width: 1),
       ),
       child: ListTile(
         onTap: () {
@@ -97,7 +48,7 @@ class _NoteCardState extends State<NoteCard> {
             context,
             MaterialPageRoute(
               builder: (_) => ViewerScreen(
-                noteId: widget.note.id,
+                noteId: noteId,
                 subject: subject,
               ),
             ),
@@ -105,7 +56,7 @@ class _NoteCardState extends State<NoteCard> {
         },
         contentPadding: const EdgeInsets.all(12),
 
-        // 📚 左アイコン
+        /// 左アイコン
         leading: Container(
           width: 50,
           height: 50,
@@ -113,13 +64,10 @@ class _NoteCardState extends State<NoteCard> {
             color: Colors.black,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(
-            Icons.menu_book,
-            color: Colors.white,
-          ),
+          child: const Icon(Icons.menu_book, color: Colors.white),
         ),
 
-        // 📝 タイトル
+        /// タイトル
         title: Text(
           titleText,
           style: const TextStyle(
@@ -128,63 +76,49 @@ class _NoteCardState extends State<NoteCard> {
           ),
         ),
 
-        // 👤 サブ情報
+        /// サブ情報
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 6),
-
             Row(
               children: [
                 CircleAvatar(
                   radius: 10,
-                  backgroundImage:
-                      userImage != null ? NetworkImage(userImage) : null,
-                  child: userImage == null
+                  backgroundImage: profileImageUrl != null
+                      ? NetworkImage(profileImageUrl!)
+                      : null,
+                  child: profileImageUrl == null
                       ? const Icon(Icons.person, size: 12)
                       : null,
                 ),
                 const SizedBox(width: 6),
-
                 Text(
                   nickname,
                   style: const TextStyle(fontSize: 12),
                 ),
-
                 const Spacer(),
-
                 Text(
                   "・ $timeText",
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: const TextStyle(
+                      fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),
-
-            if (term.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  "(${term})",
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-
             const SizedBox(height: 4),
-
           ],
         ),
 
-        /// 🔥 ブックマークボタン
-        trailing: LabelButton(noteId: widget.note.id)
+        /// ラベルボタン
+        trailing: LabelButton(noteId: noteId),
       ),
     );
   }
 
-  /// 🔥 時間フォーマット
-  String _formatDate(Timestamp? ts) {
-    if (ts == null) return "";
+  // 🔥 ここだけ修正（Timestamp → DateTime）
+  String _formatDate(DateTime? date) {
+    if (date == null) return "";
 
-    final date = ts.toDate();
     final now = DateTime.now();
     final diff = now.difference(date);
 

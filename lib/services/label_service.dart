@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+//ラベルをつけたり外したりする処理。
+
 class LabelService {
   final _db = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;

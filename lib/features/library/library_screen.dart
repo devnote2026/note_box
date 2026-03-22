@@ -19,6 +19,7 @@ class LibraryScreen extends StatefulWidget {
 class _MyLibraryScreenState extends State<LibraryScreen> {
   final LibraryService _service = LibraryService();
 
+
   String selectedGrade = "";
   String selectedNoteType = "";
 
@@ -140,7 +141,17 @@ class _MyLibraryScreenState extends State<LibraryScreen> {
                             itemCount: notes.length,
                             itemBuilder: (context, index) {
                               final note = notes[index];
-                              return NoteCard(note: note);
+                              final data = note.data() as Map<String, dynamic>;
+                              return NoteCard(
+                                noteId: note.id,
+                                subject: data['subject'] ?? "",
+                                noteType: data['noteType'] ?? "",
+                                term: data['term'] ?? "",
+                                nickname: data['nickname'] ?? "名無し",
+                                profileImageUrl: data['profileImageUrl'],
+                                updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+
+                              );
                             },
                           ),
               ),

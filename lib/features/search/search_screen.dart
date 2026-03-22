@@ -239,7 +239,19 @@ Widget build(BuildContext context) {
           const Center(child: Text("ノートがありません")),
 
         ...notes.map((note){
-          return NoteCard(note: note);
+          final data = note.data() as Map<String, dynamic>;
+
+          return NoteCard(
+            noteId: note.id,
+            subject: data['subject'] ?? "",
+            noteType: data['noteType'] ?? "",
+            term: data['term'] ?? "",
+            nickname: data['nickname'] ?? "名無し",
+            profileImageUrl: data['profileImageUrl'],
+            updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+          );
+
+            
         })
 
         

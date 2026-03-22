@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
-class ViewerScreen extends StatelessWidget {
+
+class ViewerScreen extends StatefulWidget {
   final String noteId;
   final String subject;
 
@@ -14,10 +16,48 @@ class ViewerScreen extends StatelessWidget {
   });
 
   @override
+  State<ViewerScreen> createState() => _ViewerScreenState();
+}
+
+class _ViewerScreenState extends State<ViewerScreen> {
+
+  int currentIndex = 0;
+  List<Map<String,dynamic>> posts = [];
+
+  Future<void> report() async {                            //通報処理
+    try{ 
+      final post = posts[currentIndex];
+      final user = FirebaseAuth.instance.currentUser;
+
+      if(user == null) return;
+
+      final reportId = "${post['postId']}_${user.uid}";
+
+      await FirebaseFirestore.instance
+              .collection("reports")
+              .doc(reportId)
+              .set({
+                'noteId': widget.noteId,
+                'postId': post['postId'],
+                'reportedBy': user.uid,
+                'createdAt': FieldValue.serverTimestamp()
+              });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("通報しました"))
+      );
+    }
+
+    catch(e){
+      debugPrint("通報に失敗しました: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final postRef = FirebaseFirestore.instance
         .collection('notes')
-        .doc(noteId)
+        .doc(widget.noteId)
         .collection('posts')
         .orderBy('createdAt');
 
@@ -44,9 +84,7 @@ class ViewerScreen extends StatelessWidget {
           // 🚨 通報ボタン
           IconButton(
             icon: const Icon(Icons.report_outlined),
-            onPressed: () {
-              // TODO: 通報処理
-            },
+            onPressed: report
           ),
         ],
       ),
@@ -74,15 +112,28 @@ class ViewerScreen extends StatelessWidget {
             );
           }
 
-          final imageUrls =
-              docs.map((doc) => doc['imageUrl'] as String).toList();
+          final newPosts = docs.map((doc){
+            return {
+              'postId': doc.id,
+              'imageUrl': doc['imageUrl'] 
+            };
+          }).toList();
+
+          posts = newPosts;
 
           return PhotoViewGallery.builder(
-            itemCount: imageUrls.length,
+            itemCount: posts.length,
             scrollPhysics: const ClampingScrollPhysics(),
+            onPageChanged: (index){
+              setState(() {
+                currentIndex = index;
+              });
+            },
             builder: (context, index) {
+              final post = posts[index];
+
               return PhotoViewGalleryPageOptions(
-                imageProvider: NetworkImage(imageUrls[index]),
+                imageProvider: NetworkImage(post['imageUrl']),
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 2,
               );

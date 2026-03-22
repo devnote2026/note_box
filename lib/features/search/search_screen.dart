@@ -13,6 +13,7 @@ import '../../widgets/search_header.dart';
 import '../../widgets/subject_selector.dart';
 import '../../widgets/note_type_selector.dart';
 import '../../widgets/note_card.dart';
+import '../../widgets/grade_department_change_widget.dart';
 
 import '../../constants/note_type.dart';
 
@@ -46,6 +47,33 @@ class _SearchScreenState extends State<SearchScreen> {
     fetchUserInfo();
   }
 
+  Future<void> onSettings() async {
+
+    try{
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GradeDepartmentChangeWidget()
+        )
+      );
+
+      if(result != null){
+        setState(() {
+          grade = result['grade'];
+          department = result['department'];
+        });
+      }
+
+      await fetchSubjects();
+      await fetchNotesData();
+
+    }
+
+    catch(e){
+      if(!mounted) return;
+      debugPrint("学年・学科の設定に失敗しました: $e");
+    }
+  }
   Future<void> fetchSubjects() async {
     if (grade == null || department == null) return;
 
@@ -133,9 +161,7 @@ Widget build(BuildContext context) {
         SearchHeader(
           department: department,
           grade: grade,
-          onTapSettings: (){
-            // 学年・学科を設定する画面へ。
-          },
+          onTapSettings: onSettings
         ),
 
 

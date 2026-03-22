@@ -1,36 +1,36 @@
-// ノートを検索する画面
-
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-
+import '../../widgets/profile_card.dart';
+import '../../widgets/stats_section.dart';
+import '../../widgets/logout_button.dart';
 import '../../widgets/bottom_navbar.dart';
 
-class MypageScreen extends StatelessWidget {
-  const MypageScreen({super.key});
+// マイページを構成する
+import '../../services/profile_service.dart';
+import '../../services/profile_storage_service.dart';
+
+class MyPageScreen extends StatelessWidget {
+  const MyPageScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-
-    final _authService = AuthService();
+    final profileService = ProfileService(ProfileStorageService());  //プロフィールを取得するクラスのインスタンスを生成
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: ElevatedButton(
-          child: Text("(マイページ) サインアウトする"),
-          onPressed: () async{
-            try{
-               _authService.signOut();
-            }
-
-            catch(e){
-              debugPrint("サインアウトできませんでした。$e");
-            }
-          },
-        )
-      ),
-
+      appBar: AppBar(backgroundColor: Colors.white),
       bottomNavigationBar: BottomNavbar(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            ProfileCard(profileService: profileService), //プロフィールカードにインスタンスを渡す。
+            const SizedBox(height: 16),
+            const StatsSection(),
+            const SizedBox(height: 24),
+            const LogoutButton(),
+          ],
+        ),
+      ),
     );
   }
 }

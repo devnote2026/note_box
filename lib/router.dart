@@ -130,7 +130,7 @@ redirect: (context, state) async {
         GoRoute(
           path: '/mypage',
           pageBuilder: (context, state) => const NoTransitionPage(
-            child: MypageScreen()
+            child: MyPageScreen()
           ),
         ),
 

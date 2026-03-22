@@ -26,7 +26,6 @@ class ProfileService {
 
     if (doc.data() == null || !doc.exists) return{};
     return doc.data()!;
-
   }
 
 

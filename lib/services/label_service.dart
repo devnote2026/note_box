@@ -65,6 +65,16 @@ class LabelService {
         /// =========================
         tx.set(labelRef, {               //ラベルしたノートリストに作成時を保存
           'createdAt': FieldValue.serverTimestamp(),
+          'noteId': noteId,
+          'subject': noteData['subject'],
+          'grade': noteData['grade'],
+          'department': noteData['department'],
+          'noteType': noteData['noteType'],
+          'term': noteData['term'],
+          'labelCount': noteData['labelCount'] ?? 0,
+          'nickname': noteData['nickname'],
+          'ownerUid': ownerUid,
+          'profileImageUrl': noteData['profileImageUrl']
         });
 
         /// ノートの⭐数 +1

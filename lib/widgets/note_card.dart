@@ -164,7 +164,7 @@ class _NoteCardState extends State<NoteCard> {
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                  "📅 $term",
+                  "(${term})",
                   style: const TextStyle(fontSize: 12),
                 ),
               ),

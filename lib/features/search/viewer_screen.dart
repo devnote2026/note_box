@@ -73,13 +73,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
         ),
 
         actions: [
-          // ⭐ 重要ラベルボタン
-          IconButton(
-            icon: const Icon(Icons.favorite),
-            onPressed: () {
-              // TODO: 重要ラベル処理
-            },
-          ),
+          Text("通報する"),
 
           // 🚨 通報ボタン
           IconButton(

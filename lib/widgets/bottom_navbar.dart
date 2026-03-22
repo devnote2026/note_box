@@ -47,8 +47,8 @@ class BottomNavbar extends StatelessWidget {
     return Container(
       color: Colors.white, // ← 余白を埋めるために追加
       child: BottomNavigationBar(
-        selectedItemColor: Colors.lightBlue,
-        unselectedItemColor: Colors.black,
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: currentIndex,

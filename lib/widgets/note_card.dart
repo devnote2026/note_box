@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:note_box/features/search/viewer_screen.dart';
 import '../constants/note_type.dart';
+import '../widgets/label_button.dart';
 
-class NoteCard extends StatelessWidget {
+class NoteCard extends StatefulWidget {
   final QueryDocumentSnapshot note;
 
   const NoteCard({
@@ -12,8 +14,59 @@ class NoteCard extends StatelessWidget {
   });
 
   @override
+  State<NoteCard> createState() => _NoteCardState();
+}
+
+class _NoteCardState extends State<NoteCard> {
+  bool isLabeled = false;
+  bool isLoading = true;
+  bool isProcessing = false;
+
+
+  final _auth = FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLabel();
+  }
+
+  Future<void> _loadLabel() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('labeledNotes')
+          .doc(widget.note.id)
+          .get();
+
+      if (!mounted) return;
+
+      setState(() {
+        isLabeled = doc.exists;
+        isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+
+
+  @override
   Widget build(BuildContext context) {
-    final data = note.data() as Map<String, dynamic>;
+    final data = widget.note.data() as Map<String, dynamic>;
 
     final nickname = data["nickname"] ?? "名無し";
     final subject = data["subject"] ?? "";
@@ -21,35 +74,33 @@ class NoteCard extends StatelessWidget {
     final term = data["term"] ?? "";
     final userImage = data["profileImageUrl"];
     final updatedAt = data["updatedAt"] as Timestamp?;
-    final noteTypeText = NoteType.displayMap[noteType] ?? noteType;
 
+    final noteTypeText = NoteType.displayMap[noteType] ?? noteType;
 
     final titleText = "$subjectの$noteTypeText";
     final timeText = _formatDate(updatedAt);
 
     return Card(
       color: Colors.white,
-      
       elevation: 0,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
+        side: const BorderSide(
           color: Colors.black,
-          width: 1
-        )
+          width: 1,
+        ),
       ),
       child: ListTile(
-
-        onTap: (){
+        onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => ViewerScreen(
-                noteId: note.id,
+                noteId: widget.note.id,
                 subject: subject,
-              )
-            )
+              ),
+            ),
           );
         },
         contentPadding: const EdgeInsets.all(12),
@@ -83,14 +134,12 @@ class NoteCard extends StatelessWidget {
           children: [
             const SizedBox(height: 6),
 
-            // 👤 + 🕒
             Row(
               children: [
                 CircleAvatar(
                   radius: 10,
-                  backgroundImage: userImage != null
-                      ? NetworkImage(userImage)
-                      : null,
+                  backgroundImage:
+                      userImage != null ? NetworkImage(userImage) : null,
                   child: userImage == null
                       ? const Icon(Icons.person, size: 12)
                       : null,
@@ -111,7 +160,6 @@ class NoteCard extends StatelessWidget {
               ],
             ),
 
-            // 📅 term（あれば）
             if (term.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -120,8 +168,14 @@ class NoteCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
+
+            const SizedBox(height: 4),
+
           ],
         ),
+
+        /// 🔥 ブックマークボタン
+        trailing: LabelButton(noteId: widget.note.id)
       ),
     );
   }
@@ -139,5 +193,4 @@ class NoteCard extends StatelessWidget {
     if (diff.inMinutes > 0) return "${diff.inMinutes}分前";
     return "たった今";
   }
-
 }

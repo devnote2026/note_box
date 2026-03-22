@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
 
 class GradeSelector extends StatelessWidget {
-  final Function(String) onChanged;
-  final String selected;
+  final ValueChanged<String> onChanged;
+  final String? selected;
+  final List<String> values;
 
   const GradeSelector({
     super.key,
     required this.onChanged,
     required this.selected,
+    required this.values,
   });
-
-  static const List<String> values = [
-    "1年",
-    "2年",
-    "3年",
-    "4年",
-    "5年",
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +34,7 @@ class GradeSelector extends StatelessWidget {
                 onChanged(value);
               },
               child: Text(
-                "$value",
+                value,
                 style: TextStyle(
                   color: isSelected ? Colors.white : Colors.black,
                   fontWeight: FontWeight.bold,

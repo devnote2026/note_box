@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/profile_service.dart';
+import '../features/mypage/edit_profile_screen.dart';
 
 //マイページのプロフィールカード
 
@@ -37,6 +38,18 @@ class ProfileCard extends StatelessWidget {
         return InkWell(
           onTap: () {
             // プロフィール編集画面へ
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => EditProfileScreen(
+                  currentNickname: name,
+                  currentGrade: grade,
+                  currentDepartment: department,
+                  currentImageUrl: imageUrl,
+                )
+                )
+            );
+
           },
           borderRadius: BorderRadius.circular(16),
           child: Ink(

@@ -8,6 +8,7 @@ import '../../widgets/bottom_navbar.dart';
 import '../../widgets/note_card.dart';
 
 import '../library/labeled_note_screen.dart';
+import '../../constants/profile_constants.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -102,6 +103,7 @@ class _MyLibraryScreenState extends State<LibraryScreen> {
             children: [
               /// 学年フィルター
               GradeSelector(
+                values: grades,
                 selected: selectedGrade,
                 onChanged: (value) async {
                   setState(() {

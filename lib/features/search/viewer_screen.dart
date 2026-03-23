@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import '../../services/note_service.dart';
+import '../../widgets/viewer_dialogs.dart';
 
 
 class ViewerScreen extends StatefulWidget {
@@ -100,32 +101,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
     );
   }
 
-  Future<void> showDeleteDialog() async{     //ノートを削除するかどうかのダイアログを表示する
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("削除確認"),
-          content: const Text("この画像を削除しますか？"),
-          actions: [
-            TextButton(
-              onPressed:()=> Navigator.pop(context,false),
-              child: Text("キャンセル")
-              ),
-            
-            TextButton(
-              onPressed: ()=> Navigator.pop(context,true),
-              child: Text("削除"),
-            )
-          ],
-        );
-  }
-    );
 
-    if(result == true){
-      await handleDelete();
-    }
-    }
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +116,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
         .orderBy('createdAt');
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         // ← 戻るボタン
@@ -153,8 +130,12 @@ class _ViewerScreenState extends State<ViewerScreen> {
         actions: [
           if(isOwner == true)
             IconButton(
-              onPressed: (){
-                showDeleteDialog();
+              onPressed: () async{
+                final result = await showDeleteDialog(context);
+
+                if(result == true){
+                  await handleDelete();
+                }
               }, icon: Icon(Icons.delete)
             ),
 

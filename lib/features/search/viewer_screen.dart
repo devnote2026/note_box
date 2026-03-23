@@ -5,6 +5,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import '../../services/note_service.dart';
 import '../../widgets/viewer_dialogs.dart';
+import '../../services/report_service.dart';
 
 
 class ViewerScreen extends StatefulWidget {
@@ -53,35 +54,30 @@ class _ViewerScreenState extends State<ViewerScreen> {
 
 
 
+Future<void> report() async {
+  final post = posts[currentIndex];
+  final user = FirebaseAuth.instance.currentUser;
 
-  Future<void> report() async {                            //通報処理
-    try{ 
-      final post = posts[currentIndex];
-      final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
 
-      if(user == null) return;
+  final success = await ReportService.reportPost(
+    noteId: widget.noteId,
+    postId: post['postId'],
+    userId: user.uid,
+  );
 
-      final reportId = "${post['postId']}_${user.uid}";
+  if (!mounted) return;
 
-      await FirebaseFirestore.instance
-              .collection("reports")
-              .doc(reportId)
-              .set({
-                'noteId': widget.noteId,
-                'postId': post['postId'],
-                'reportedBy': user.uid,
-                'createdAt': FieldValue.serverTimestamp()
-              });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("通報しました"))
-      );
-    }
-
-    catch(e){
-      debugPrint("通報に失敗しました: $e");
-    }
+  if (success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("通報しました")),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("すでに通報済みです")),
+    );
   }
+}
 
 
   Future<void> handleDelete() async{          //ノート・ポスト削除処理を呼び出す
@@ -139,12 +135,17 @@ class _ViewerScreenState extends State<ViewerScreen> {
               }, icon: Icon(Icons.delete)
             ),
 
-          Text("通報"),
 
           // 🚨 通報ボタン
           IconButton(
             icon: const Icon(Icons.report_outlined),
-            onPressed: report
+            onPressed: () async{
+              final result = await showReportDialog(context);
+
+              if(result == true) {
+                await report();
+              }
+            }
           ),
         ],
       ),

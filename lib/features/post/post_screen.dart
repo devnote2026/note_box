@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // 👈 追加
 import 'package:note_box/services/profile_storage_service.dart';
 import 'package:note_box/services/post_storage_service.dart';
 import 'package:note_box/utils/image_utils.dart';
@@ -43,7 +44,24 @@ class _PostScreenState extends State<PostScreen> {
   @override
   void initState() {
     super.initState();
+
+    // 🔥 ここ追加：縦固定
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
     fetchProfile();
+  }
+
+  // 🔥 ここ追加：元に戻す（重要）
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    super.dispose();
   }
 
   /// 🔥 プロフィール取得
@@ -65,7 +83,6 @@ class _PostScreenState extends State<PostScreen> {
   Future<void> handlePost() async {
     if (isLoading) return;
 
-    /// 🔥 バリデーション
     if (grade == null ||
         department == null ||
         subject == null ||
@@ -86,12 +103,13 @@ class _PostScreenState extends State<PostScreen> {
     try {
       final postService = PostService(PostStorageService());
 
-      final compressedFile = await ImageUtils.convertToJpg(widget.imageFile);
+      final compressedFile =
+          await ImageUtils.convertToJpg(widget.imageFile);
 
-      if(!mounted) return;
-      Navigator.pop(context,true);
+      if (!mounted) return;
+      Navigator.pop(context, true);
 
-       postService.createPost(
+      postService.createPost(
         imageFile: compressedFile,
         grade: grade!,
         department: department!,
@@ -99,7 +117,6 @@ class _PostScreenState extends State<PostScreen> {
         noteType: noteType!,
         term: term,
       );
-
     } catch (e) {
       showError("投稿に失敗しました");
     } finally {
@@ -111,34 +128,32 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
-  
-  Future<void> fetchSubjects() async{
-
-    if(grade == null || department == null) return;
+  Future<void> fetchSubjects() async {
+    if (grade == null || department == null) return;
 
     setState(() {
       isLoadingSubjects = true;
     });
 
-    try{
-      final result = await SubjectService().getSubjects(grade!, department!);
+    try {
+      final result =
+          await SubjectService().getSubjects(grade!, department!);
 
-      if(!mounted) return;
+      if (!mounted) return;
 
       setState(() {
         subjects = result;
         subject = null;
         isLoadingSubjects = false;
       });
-    }
-
-    catch(e){
+    } catch (e) {
       setState(() {
         subjects = [];
         isLoadingSubjects = false;
       });
     }
   }
+
   void showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -152,7 +167,6 @@ class _PostScreenState extends State<PostScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            /// 🔥 画像エリア
             Expanded(
               child: Stack(
                 children: [
@@ -166,10 +180,9 @@ class _PostScreenState extends State<PostScreen> {
                       ),
                     ),
                   ),
-
-                  /// 削除ボタン
                   Positioned(
-                    bottom: MediaQuery.of(context).padding.bottom + 12,
+                    bottom:
+                        MediaQuery.of(context).padding.bottom + 12,
                     right: 16,
                     child: Container(
                       decoration: const BoxDecoration(
@@ -188,7 +201,6 @@ class _PostScreenState extends State<PostScreen> {
               ),
             ),
 
-            /// 🔥 下エリア
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -200,7 +212,6 @@ class _PostScreenState extends State<PostScreen> {
                 ),
                 child: Column(
                   children: [
-                    /// 上部情報
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -216,11 +227,11 @@ class _PostScreenState extends State<PostScreen> {
                                   ),
                                 ),
                               ),
-
                               IconButton(
                                 icon: const Icon(Icons.settings),
                                 onPressed: () async {
-                                  final result = await Navigator.push(
+                                  final result =
+                                      await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
@@ -228,11 +239,13 @@ class _PostScreenState extends State<PostScreen> {
                                     ),
                                   );
 
-                                  if (!mounted || result == null) return;
+                                  if (!mounted || result == null)
+                                    return;
 
                                   setState(() {
                                     grade = result['grade'];
-                                    department = result['department'];
+                                    department =
+                                        result['department'];
                                   });
 
                                   await fetchSubjects();
@@ -240,12 +253,10 @@ class _PostScreenState extends State<PostScreen> {
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 12),
-
-                          /// ノートタイプ
                           NoteTypeSelector(
-                            selected: noteType ?? NoteType.lesson,
+                            selected:
+                                noteType ?? NoteType.lesson,
                             onChanged: (value) {
                               setState(() {
                                 noteType = value;
@@ -259,42 +270,46 @@ class _PostScreenState extends State<PostScreen> {
 
                     const Divider(),
 
-                    /// 🔥 フィルター
                     Expanded(
                       child: ListView(
                         children: [
-                          if (grade != null && department != null)
+                          if (grade != null &&
+                              department != null)
                             SubjectSelector(
                               subjects: subjects,
                               selectedSubject: subject,
                               isLoading: isLoadingSubjects,
-                              onSelect:  (value) {
+                              onSelect: (value) {
                                 setState(() {
                                   subject = value;
                                 });
                               },
                             ),
-
                           const SizedBox(height: 12),
-
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8),
                             child: TermSelector(
-                              terms:["前期中間","前期末","後期中間","学年末"],
+                              terms: [
+                                "前期中間",
+                                "前期末",
+                                "後期中間",
+                                "学年末"
+                              ],
                               selectedTerm: term,
-                              enabled: noteType == NoteType.pastExam,
+                              enabled:
+                                  noteType == NoteType.pastExam,
                               onSelected: (value) {
                                 setState(() {
                                   term = value;
                                 });
                               },
-                            )
+                            ),
                           ),
                         ],
                       ),
                     ),
 
-                    /// 🔥 投稿ボタン（ここ追加）
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: CustomButton(

@@ -3,11 +3,9 @@ import '../../widgets/custom_button.dart';
 
 import '../../services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:go_router/go_router.dart';
 
-
-//学年・学科を登録する画面
+// 学年・学科を登録する画面
 
 class GradeDepartmentScreen extends StatefulWidget {
   const GradeDepartmentScreen({super.key});
@@ -17,9 +15,12 @@ class GradeDepartmentScreen extends StatefulWidget {
 }
 
 class _GradeDepartmentScreenState extends State<GradeDepartmentScreen> {
-  // 選択された学年・学科
+
   String? selectedGrade;
   String? selectedDepartment;
+
+  bool isLoading = false;   // UI用
+  bool _isSaving = false;   // ロジック用（完全ガード）
 
   final List<String> grades = [
     "1年",
@@ -37,42 +38,65 @@ class _GradeDepartmentScreenState extends State<GradeDepartmentScreen> {
     "情報工学科",
   ];
 
-  // 保存ボタンの処理（今はUIだけ）
-Future<void> _saveGradeDepartment() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return; // 未ログインは処理中断
+  // 保存処理（完全連打防止）
+  Future<void> _saveGradeDepartment() async {
 
-  if (selectedGrade == null || selectedDepartment == null) {   //未入力なら返す。
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("学年と学科を選択してください")),
-    );
-    return;
+    // 🔥 最速ガード（これが本質）
+    if (_isSaving) return;
+    _isSaving = true;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _isSaving = false;
+      return;
+    }
+
+    if (selectedGrade == null || selectedDepartment == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("学年と学科を選択してください")),
+      );
+      _isSaving = false;
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await UserService().saveGradeDepartment(
+        uid: user.uid,
+        grade: selectedGrade!,
+        department: selectedDepartment!,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("選択: $selectedGrade / $selectedDepartment"),
+        ),
+      );
+
+      debugPrint("学年・学科の保存に成功しました。");
+      context.go("/profile_image");
+
+    } catch (e) {
+      debugPrint("学年・学科の保存に失敗しました: $e");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("保存に失敗しました。もう一度試してください。"),
+        ),
+      );
+    } finally {
+      _isSaving = false;
+
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
-
-  try {
-    await UserService().saveGradeDepartment(    //選択された学年・学科を更新。
-      uid: user.uid,
-      grade: selectedGrade!,
-      department: selectedDepartment!,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("選択: $selectedGrade / $selectedDepartment"),
-      ),
-    );
-
-    // ここで画面遷移する場合は Navigator.push(...)
-    debugPrint("学年・学科の保存に成功しました。");
-    context.go("/profile_image");
-
-  } catch (e) {
-    debugPrint("学年・学科の保存に失敗しました: $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("保存に失敗しました。もう一度試してください。")),
-    );
-  }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -148,13 +172,13 @@ Future<void> _saveGradeDepartment() async {
 
               const SizedBox(height: 40),
 
-              // 保存ボタン
+              // 保存ボタン（連打防止）
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: CustomButton(
-                  text: "次へ",
-                  onPressed: _saveGradeDepartment,
+                  text: isLoading ? "保存中..." : "次へ",
+                  onPressed: isLoading ? null : _saveGradeDepartment,
                 ),
               ),
             ],

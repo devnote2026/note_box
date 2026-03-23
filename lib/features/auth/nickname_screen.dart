@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:go_router/go_router.dart';
 
 import '../../services/user_service.dart';
+import '../../widgets/custom_button.dart';
 
-
-//ニックネームを入力・保存を行う画面。
-
-
+// ニックネームを入力・保存を行う画面。
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({super.key});
@@ -18,33 +15,46 @@ class NicknameScreen extends StatefulWidget {
 }
 
 class _NicknameScreenState extends State<NicknameScreen> {
-  
 
-  //テキストフィールドを監視する人。
   final _nicknameController = TextEditingController();
 
-  //監視しなくて良くなったら殺す。
+  bool isLoading = false;   // UI用
+  bool _isSaving = false;   // ロジック用（完全ガード）
+
   @override
   void dispose() {
     _nicknameController.dispose();
     super.dispose();
   }
-  
 
-  //ニックネームを保存する関数を先につくっておく
-  Future<void> _saveNickname () async{
-    try{
+  // ニックネーム保存（完全連打防止）
+  Future<void> _saveNickname() async {
+
+    // 🔥 最速ガード（これが最重要）
+    if (_isSaving) return;
+    _isSaving = true;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
       final nickname = _nicknameController.text.trim();
 
-      if (nickname.isEmpty){
+      if (nickname.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("ニックネームを入力してください",style:TextStyle(fontSize: 20)))
+          const SnackBar(
+            content: Text(
+              "ニックネームを入力してください",
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
         );
         return;
       }
 
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null){
+      if (user == null) {
         debugPrint('ユーザーがログインしていません。');
         return;
       }
@@ -52,83 +62,77 @@ class _NicknameScreenState extends State<NicknameScreen> {
       final uid = user.uid;
 
       await UserService().createUser(uid: uid, nickname: nickname);
-      
+
       debugPrint('ニックネームの保存に成功しました: $nickname');
       context.go('/grade_department');
-    }
-    catch(e){
-      debugPrint("ニックネームを保存できませんでした$e");
+
+    } catch (e) {
+      debugPrint("ニックネームを保存できませんでした $e");
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("保存に失敗しました。もう一度試してください"))
+        const SnackBar(
+          content: Text("保存に失敗しました。もう一度試してください"),
+        ),
       );
-      return;
+    } finally {
+      _isSaving = false;
+
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.white,
-    resizeToAvoidBottomInset: true,
-
-    body: SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom, // ← キーボード対応
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-
-            Text(
-              "ニックネームを入力してください",
-              style: TextStyle(
-                height: 1.5,
-                color: Colors.black,
-              ),
-            ),
-
-            TextField(
-              controller: _nicknameController,
-              decoration: InputDecoration(
-                labelText: '飯間 圭一郎',
-                floatingLabelBehavior: FloatingLabelBehavior.never,
-
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),
-                ),
-
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 2),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                "ニックネームを入力してください",
+                style: TextStyle(
+                  height: 1.5,
+                  color: Colors.black,
                 ),
               ),
-            ),
 
-            SizedBox(height: 20),
-
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              TextField(
+                controller: _nicknameController,
+                decoration: const InputDecoration(
+                  labelText: '飯間 圭一郎',
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
                 ),
               ),
-              onPressed: () async {
-                await _saveNickname();
-              },
-              child: Text(
-                "次へ",
-                style: TextStyle(color: Colors.black),
+
+              const SizedBox(height: 20),
+
+              CustomButton(
+                text: isLoading ? "保存中..." : "次へ",
+                onPressed: isLoading ? null : _saveNickname,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

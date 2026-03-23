@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-
+import '../../services/note_service.dart';
 
 
 class ViewerScreen extends StatefulWidget {
@@ -39,9 +38,15 @@ class _ViewerScreenState extends State<ViewerScreen> {
                         .doc(widget.noteId)
                         .get();
     
-    setState(() {
-      ownerId = doc['uid'];
-    });
+    final data = doc.data();
+
+    if(data != null && data.containsKey('uid')){
+      setState(() {
+        ownerId = data['uid'];
+      });
+    } else{
+      debugPrint("未ログインまたはノートが存在しない状態です");
+    }
   }
 
 
@@ -77,6 +82,51 @@ class _ViewerScreenState extends State<ViewerScreen> {
     }
   }
 
+
+  Future<void> handleDelete() async{          //ノート・ポスト削除処理を呼び出す
+    final post = posts[currentIndex];
+
+    final deleteNote = await deletePost(
+      noteId: widget.noteId,
+      postId: post['postId'],
+    );
+
+    if(deleteNote){
+      if(mounted) Navigator.pop(context);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("削除しました")),
+    );
+  }
+
+  Future<void> showDeleteDialog() async{     //ノートを削除するかどうかのダイアログを表示する
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("削除確認"),
+          content: const Text("この画像を削除しますか？"),
+          actions: [
+            TextButton(
+              onPressed:()=> Navigator.pop(context,false),
+              child: Text("キャンセル")
+              ),
+            
+            TextButton(
+              onPressed: ()=> Navigator.pop(context,true),
+              child: Text("削除"),
+            )
+          ],
+        );
+  }
+    );
+
+    if(result == true){
+      await handleDelete();
+    }
+    }
+
   @override
   Widget build(BuildContext context) {
 
@@ -103,7 +153,9 @@ class _ViewerScreenState extends State<ViewerScreen> {
         actions: [
           if(isOwner == true)
             IconButton(
-              onPressed: (){}, icon: Icon(Icons.delete)
+              onPressed: (){
+                showDeleteDialog();
+              }, icon: Icon(Icons.delete)
             ),
 
           Text("通報"),

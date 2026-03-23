@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+
 
 
 class ViewerScreen extends StatefulWidget {
@@ -23,6 +25,28 @@ class _ViewerScreenState extends State<ViewerScreen> {
 
   int currentIndex = 0;
   List<Map<String,dynamic>> posts = [];
+  String? ownerId;
+
+  @override
+  void initState(){
+    super.initState();
+    fetchOwnerId();
+  }
+
+  Future<void> fetchOwnerId() async{
+    final doc = await FirebaseFirestore.instance
+                        .collection('notes')
+                        .doc(widget.noteId)
+                        .get();
+    
+    setState(() {
+      ownerId = doc['uid'];
+    });
+  }
+
+
+
+
 
   Future<void> report() async {                            //通報処理
     try{ 
@@ -55,6 +79,10 @@ class _ViewerScreenState extends State<ViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final user = FirebaseAuth.instance.currentUser;
+    final isOwner = user!= null && user.uid == ownerId;
+
     final postRef = FirebaseFirestore.instance
         .collection('notes')
         .doc(widget.noteId)
@@ -73,7 +101,12 @@ class _ViewerScreenState extends State<ViewerScreen> {
         ),
 
         actions: [
-          Text("通報する"),
+          if(isOwner == true)
+            IconButton(
+              onPressed: (){}, icon: Icon(Icons.delete)
+            ),
+
+          Text("通報"),
 
           // 🚨 通報ボタン
           IconButton(

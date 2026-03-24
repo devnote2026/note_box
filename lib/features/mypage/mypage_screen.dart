@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/profile_card.dart';
 import '../../widgets/logout_button.dart';
 import '../../widgets/bottom_navbar.dart';
+import '../../widgets/delete_account_button.dart';
 
 // マイページを構成する
 import '../../services/profile_service.dart';
@@ -25,6 +26,8 @@ class MyPageScreen extends StatelessWidget {
             ProfileCard(profileService: profileService), //プロフィールカードにインスタンスを渡す。
             const SizedBox(height: 180),
             const LogoutButton(),
+            const SizedBox(height: 18,),
+            const DeleteAccountButton()
           ],
         ),
       ),

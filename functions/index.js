@@ -1,91 +1,135 @@
-const functions = require("firebase-functions");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-exports.deleteUserData = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "ログイン必要");
+exports.deleteUserData = onCall(async (request) => {
+  console.log("🔥 関数スタート");
+
+  if (!request.auth) {
+    console.error("❌ 未ログイン");
+    throw new HttpsError("unauthenticated", "ログイン必要");
   }
 
-  const uid = context.auth.uid;
+  const uid = request.auth.uid;
+  console.log("👤 uid:", uid);
+
   const db = admin.firestore();
   const bucket = admin.storage().bucket();
 
   try {
     // =========================
+    // 🔧 共通削除関数
+    // =========================
+    const deleteCollection = async (snapshot) => {
+      let batch = db.batch();
+      let count = 0;
+
+      for (const doc of snapshot.docs) {
+        batch.delete(doc.ref);
+        count++;
+
+        if (count === 500) {
+          await batch.commit();
+          batch = db.batch();
+          count = 0;
+        }
+      }
+
+      if (count > 0) {
+        await batch.commit();
+      }
+    };
+
+    // =========================
     // ① users削除
     // =========================
+    console.log("① users削除開始");
+
     const userRef = db.collection("users").doc(uid);
 
-    // users/{uid}/posts削除
     const userPosts = await userRef.collection("posts").get();
-    const batch1 = db.batch();
-    userPosts.forEach((doc) => batch1.delete(doc.ref));
-    await batch1.commit();
+    console.log("userPosts数:", userPosts.size);
 
-    // users/{uid}削除
+    await deleteCollection(userPosts);
+
     await userRef.delete();
+    console.log("users削除完了");
 
     // =========================
-    // ② notes削除（自分のノート）
+    // ② notes削除
     // =========================
+    console.log("② notes削除開始");
+
     const notesSnapshot = await db
       .collection("notes")
       .where("uid", "==", uid)
       .get();
 
+    console.log("notes数:", notesSnapshot.size);
+
     for (const noteDoc of notesSnapshot.docs) {
       const noteId = noteDoc.id;
 
-      // posts削除
-      const postsSnapshot = await db
-        .collection("notes")
-        .doc(noteId)
-        .collection("posts")
-        .get();
+      const postsSnapshot = await noteDoc.ref.collection("posts").get();
 
-      const batch2 = db.batch();
-      postsSnapshot.forEach((doc) => batch2.delete(doc.ref));
-      await batch2.commit();
-
-      // note削除
+      await deleteCollection(postsSnapshot);
       await noteDoc.ref.delete();
 
-      // Storage削除
-      await bucket.deleteFiles({
-        prefix: `notes/${noteId}/`,
-      });
+      try {
+        await bucket.deleteFiles({
+          prefix: `notes/${noteId}/`,
+        });
+      } catch (e) {
+        console.error("⚠️ storage削除失敗:", noteId, e);
+      }
     }
 
     // =========================
     // ③ reports削除
     // =========================
+    console.log("③ reports削除開始");
+
     const reportsSnapshot = await db
       .collection("reports")
       .where("reportedBy", "==", uid)
       .get();
 
-    const batch3 = db.batch();
-    reportsSnapshot.forEach((doc) => batch3.delete(doc.ref));
-    await batch3.commit();
+    await deleteCollection(reportsSnapshot);
 
     // =========================
-    // ④ プロフィール画像削除
+    // ④ profile削除
     // =========================
-    await bucket.deleteFiles({
-      prefix: `users/${uid}/`,
-    });
+    console.log("④ profile削除開始");
+
+    try {
+      await bucket.deleteFiles({
+        prefix: `users/${uid}/`,
+      });
+    } catch (e) {
+      console.error("⚠️ profile削除失敗:", e);
+    }
 
     // =========================
     // ⑤ Auth削除
     // =========================
+    console.log("⑤ Auth削除開始");
+
     await admin.auth().deleteUser(uid);
+
+    console.log("🎉 全削除完了");
 
     return { success: true };
 
   } catch (error) {
-    console.error(error);
-    throw new functions.https.HttpsError("internal", "削除失敗");
+    console.error("💥 エラー発生:", error);
+
+    throw new HttpsError(
+      "internal",
+      error.message || "削除失敗",
+      {
+        detail: error.toString(),
+      }
+    );
   }
 });

@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/user_service.dart';
 import '../../widgets/custom_button.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+
 
 class TermsAgreementScreen extends StatefulWidget {
   const TermsAgreementScreen({super.key});
@@ -46,6 +49,17 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
     );
   }
 
+  Future<void> _openUrl(String url) async {
+  final uri = Uri.parse(url);
+
+  if (!await launchUrl(
+    uri,
+    mode: LaunchMode.externalApplication, // ← これ重要
+  )) {
+    throw Exception('URLを開けませんでした');
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +100,7 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
                                   ? null
                                   : () {
                                       _runWithLoading(() async {
-                                        // TODO: WebView or 外部リンク
+                                        _openUrl('https://www.notion.so/32c22870ba4a80589ad1e8436360d60c');
                                       });
                                     },
                             ),
@@ -100,7 +114,7 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
                                   ? null
                                   : () {
                                       _runWithLoading(() async {
-                                        // TODO: WebView or 外部リンク
+                                        _openUrl('https://www.notion.so/32c22870ba4a80aaa96ecf88e82656d0');
                                       });
                                     },
                             ),

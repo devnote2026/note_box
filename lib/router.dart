@@ -34,16 +34,15 @@ class AppRouter {
       refreshListenable: _authNotifier,
 
 redirect: (context, state) async {
-
   final user = FirebaseAuth.instance.currentUser;
   final location = state.matchedLocation;
 
+  // 未ログイン
   if (user == null) {
     return location == '/login' ? null : '/login';
   }
 
   try {
-
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
@@ -51,8 +50,9 @@ redirect: (context, state) async {
 
     final data = doc.data();
 
+    // 基本ここは存在する想定（createUserIfNotExistsのおかげ）
     if (data == null) {
-      return location == '/nickname' ? null : '/nickname';
+      return '/login';
     }
 
     if (data["nickname"] == null) {
@@ -71,6 +71,7 @@ redirect: (context, state) async {
           : '/profile_image';
     }
 
+    // 完了済みユーザー
     if (
       location == '/login' ||
       location == '/nickname' ||
@@ -83,7 +84,7 @@ redirect: (context, state) async {
     return null;
 
   } catch (e) {
-    debugPrint("Router Firestore error: $e");
+    debugPrint("Router error: $e");
     return '/login';
   }
 },

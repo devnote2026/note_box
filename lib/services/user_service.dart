@@ -1,32 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-// ユーザー情報の保存・取得を行う処理をまとめる。
-// ①ニックネームを保存するタイミングでユーザーの情報を保存する。
-// ②学年・学科を選択したタイミングでデータを更新する。
 
 class UserService {
   final _db = FirebaseFirestore.instance;
 
-  // 初回ログイン時(ニックネームを保存するタイミング)でユーザーのuidとニックネームを保存する。
-  Future<void> createUser({
-    required String uid,
-    required String nickname,
-  }) async {
-    await _db.collection('users').doc(uid).set({
-      "uid": uid,
-      "nickname": nickname,
-      "grade": null,
-      "department": null,
-      "profileImageUrl": null,
-      "createdAt": FieldValue.serverTimestamp(),
-      "gradeDepartmentSaved": false,
-      "isProfileCompleted": false,
-      "receivedLabelCount": 0,
-    }, SetOptions(merge: true));
+  /// ログイン直後にユーザーを作成（存在しなければ）
+  Future<void> createUserIfNotExists(User user) async {
+    final doc = await _db.collection('users').doc(user.uid).get();
+
+    if (!doc.exists) {
+      await _db.collection('users').doc(user.uid).set({
+        "uid": user.uid,
+        "email": user.email,
+        "nickname": null,
+        "grade": null,
+        "department": null,
+        "profileImageUrl": null,
+        "createdAt": FieldValue.serverTimestamp(),
+        "gradeDepartmentSaved": false,
+        "isProfileCompleted": false,
+        "receivedLabelCount": 0,
+      });
+    }
   }
 
-  // 学年・学科が選択された時に更新する。
+  /// 学年・学科保存
   Future<void> saveGradeDepartment({
     required String uid,
     required String grade,
@@ -40,49 +39,49 @@ class UserService {
         "updatedAt": FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint("学科・学年の保存に失敗しました。: $e");
+      debugPrint("学科・学年の保存に失敗しました: $e");
       rethrow;
     }
   }
 
-  Future<void> updateUserProfile({      //プロフィールを更新する処理
-    required String uid,                //uid,ニックネーム、学年、学科、プロフィール画像のURLを取得する
+  /// プロフィール更新（nickname / 画像など全部ここ）
+  Future<void> updateUserProfile({
+    required String uid,
     String? nickname,
     String? grade,
     String? department,
     String? profileImageUrl,
   }) async {
     try {
-      final Map<String, dynamic> updateData = {    //更新時の時刻を取得
+      final doc = await _db.collection("users").doc(uid).get();
+      final data = doc.data();
+
+      final Map<String, dynamic> updateData = {
         "updatedAt": FieldValue.serverTimestamp(),
       };
 
-      if (nickname != null) {                
-        updateData["nickname"] = nickname;
-      }
-
-      if (grade != null) {
-        updateData["grade"] = grade;
-      }
-
-      if (department != null) {
-        updateData["department"] = department;
-      }
-
+      if (nickname != null) updateData["nickname"] = nickname;
+      if (grade != null) updateData["grade"] = grade;
+      if (department != null) updateData["department"] = department;
       if (profileImageUrl != null) {
         updateData["profileImageUrl"] = profileImageUrl;
       }
 
-      // 学年・学科が両方入ってたらフラグON
-      if (grade != null && department != null) {
+      // 学年・学科フラグ
+      if (
+        (grade ?? data?["grade"]) != null &&
+        (department ?? data?["department"]) != null
+      ) {
         updateData["gradeDepartmentSaved"] = true;
       }
 
-      // プロフィール完成判定（必要なら）
-      if (nickname != null &&
-          grade != null &&
-          department != null &&
-          profileImageUrl != null) {
+      // プロフィール完成フラグ
+      if (
+        (nickname ?? data?["nickname"]) != null &&
+        (grade ?? data?["grade"]) != null &&
+        (department ?? data?["department"]) != null &&
+        (profileImageUrl ?? data?["profileImageUrl"]) != null
+      ) {
         updateData["isProfileCompleted"] = true;
       }
 

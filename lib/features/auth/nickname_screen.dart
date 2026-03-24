@@ -28,62 +28,71 @@ class _NicknameScreenState extends State<NicknameScreen> {
   }
 
   // ニックネーム保存（完全連打防止）
-  Future<void> _saveNickname() async {
+Future<void> _saveNickname() async {
 
-    // 🔥 最速ガード（これが最重要）
-    if (_isSaving) return;
-    _isSaving = true;
+  if (_isSaving) return;
+  _isSaving = true;
 
-    setState(() {
-      isLoading = true;
-    });
+  setState(() {
+    isLoading = true;
+  });
 
-    try {
-      final nickname = _nicknameController.text.trim();
+  try {
+    final nickname = _nicknameController.text.trim();
 
-      if (nickname.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "ニックネームを入力してください",
-              style: TextStyle(fontSize: 20),
-            ),
-          ),
-        );
-        return;
-      }
-
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        debugPrint('ユーザーがログインしていません。');
-        return;
-      }
-
-      final uid = user.uid;
-
-      await UserService().createUser(uid: uid, nickname: nickname);
-
-      debugPrint('ニックネームの保存に成功しました: $nickname');
-      context.go('/grade_department');
-
-    } catch (e) {
-      debugPrint("ニックネームを保存できませんでした $e");
-
+    if (nickname.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("保存に失敗しました。もう一度試してください"),
+          content: Text("ニックネームを入力してください"),
         ),
       );
-    } finally {
-      _isSaving = false;
+      return;
+    }
 
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      debugPrint('ユーザーがログインしていません。');
+      return;
+    }
+
+    // 🔥 Appleログイン対策（超重要）
+    if (user.email == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("メールアドレスが取得できません。再ログインしてください"),
+        ),
+      );
+      return;
+    }
+
+    await UserService().updateUserProfile(
+      uid: user.uid,
+      nickname: nickname,
+    );
+
+    debugPrint('ニックネームの保存に成功しました: $nickname');
+
+    context.go('/grade_department');
+
+  } catch (e) {
+    debugPrint("ニックネームを保存できませんでした $e");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("保存に失敗しました。もう一度試してください"),
+      ),
+    );
+  } finally {
+    _isSaving = false;
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {

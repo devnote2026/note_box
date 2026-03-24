@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await _authService.signInWithGoogle();
+      context.go('/nickname');
     } catch (e) {
       debugPrint("ログインエラー: $e");
     } finally {

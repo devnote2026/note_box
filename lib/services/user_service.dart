@@ -21,6 +21,9 @@ class UserService {
         "gradeDepartmentSaved": false,
         "isProfileCompleted": false,
         "receivedLabelCount": 0,
+        "agreedToTerms": false,
+        "termsVersion": null,
+        "agreedAt": null,
       });
     }
   }
@@ -91,4 +94,21 @@ class UserService {
       rethrow;
     }
   }
+
+  /// 利用規約・プライバシーポリシー同意
+Future<void> agreeToTerms({
+  required String uid,
+  required String termsVersion,
+}) async {
+  try {
+    await _db.collection("users").doc(uid).update({
+      "agreedToTerms": true,
+      "agreedAt": FieldValue.serverTimestamp(),
+      "termsVersion": termsVersion,
+    });
+  } catch (e) {
+    debugPrint("規約同意の保存に失敗しました: $e");
+    rethrow;
+  }
+}
 }

@@ -125,6 +125,8 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
                             Row(
                               children: [
                                 Checkbox(
+                                  checkColor: Colors.black,
+                                  activeColor: Colors.white,
                                   value: isChecked,
                                   onChanged: isLoading
                                       ? null

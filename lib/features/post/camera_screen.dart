@@ -9,6 +9,7 @@ import '../../widgets/bottom_navbar.dart';
 import './post_screen.dart';
 
 import '../../services/image_picker_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 //投稿画面の１画面目。カメラ画面。
 
@@ -33,7 +34,22 @@ class _CameraScreenState extends State<CameraScreen> {
   }
  
   Future<void> _initCamera() async {                 //カメラの初期化
+    
+      
+
     try {
+      final status = await Permission.camera.request();
+
+      if (!status.isGranted) {
+      if (status.isPermanentlyDenied) {
+        setState(() => _error = "設定からカメラを許可してください。");
+        await openAppSettings();
+      } else {
+        setState(() => _error = "カメラの許可が必要です。");
+      }
+      return;
+      }
+
       if(cameras.isEmpty){                           //使用可能なカメラがあるかチェック
         setState(() => _error = "カメラが見つかりません。");
         return;

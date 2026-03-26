@@ -27,7 +27,7 @@ void main() async {
 
   catch(e){
     debugPrint("カメラ初期化失敗$e");
-    return;
+    cameras = [];
   }
 
   runApp(const MyApp());

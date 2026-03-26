@@ -7,7 +7,6 @@ import '../../widgets/shutter_button.dart';
 import '../../widgets/bottom_navbar.dart';
 import './post_screen.dart';
 import '../../services/image_picker_service.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -16,7 +15,9 @@ class CameraScreen extends StatefulWidget {
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
+class _CameraScreenState extends State<CameraScreen>
+    with WidgetsBindingObserver {
+
   CameraController? controller;
   Future<void>? _initializeControllerFuture;
   bool _isTakingPicture = false;
@@ -25,27 +26,35 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initCamera();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    controller?.dispose();
+    super.dispose();
+  }
+
+  // 🔥 復帰時のみ再初期化（安全）
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _initCamera();
+    } else if (state == AppLifecycleState.inactive) {
+      controller?.dispose();
+    }
   }
 
   Future<void> _initCamera() async {
     try {
-      // 🔐 権限チェック
-      final status = await Permission.camera.request();
+      setState(() {
+        _error = null;
+      });
 
-      if (!status.isGranted) {
-        if (status.isPermanentlyDenied) {
-          setState(() => _error = "設定からカメラを許可してください。");
-          await openAppSettings();
-        } else {
-          setState(() => _error = "カメラの許可が必要です。");
-        }
-        return;
-      }
-
-      // 📷 カメラ取得
       if (cameras.isEmpty) {
-        setState(() => _error = "カメラが見つかりません。");
+        setState(() => _error = "カメラが見つかりません");
         return;
       }
 
@@ -60,21 +69,23 @@ class _CameraScreenState extends State<CameraScreen> {
         enableAudio: false,
       );
 
+      // 🔥 ここで権限ダイアログ出る（iOS/Android両対応）
       _initializeControllerFuture = controller!.initialize();
       await _initializeControllerFuture;
 
       if (!mounted) return;
       setState(() {});
     } catch (e) {
-      setState(() => _error = "カメラの初期化に失敗しました。$e");
-      debugPrint("カメラの初期化に失敗しました。$e");
-    }
-  }
+      final msg = e.toString();
 
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
+      if (msg.contains("CameraAccessDenied")) {
+        setState(() => _error = "カメラの許可が必要です。\n設定から許可してください");
+      } else if (msg.contains("CameraAccessDeniedWithoutPrompt")) {
+        setState(() => _error = "設定からカメラを許可してください");
+      } else {
+        setState(() => _error = "カメラ初期化エラー\n$msg");
+      }
+    }
   }
 
   Future<void> _takePicture() async {
@@ -97,8 +108,6 @@ class _CameraScreenState extends State<CameraScreen> {
         ),
       );
     } catch (e) {
-      debugPrint("撮影に失敗しました。");
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -124,8 +133,6 @@ class _CameraScreenState extends State<CameraScreen> {
         ),
       );
     } catch (e) {
-      debugPrint("フォトライブラリが開けませんでした。$e");
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -136,7 +143,6 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ❌ エラー表示（UI改善済み）
     if (_error != null) {
       return Scaffold(
         backgroundColor: Colors.black,
@@ -150,23 +156,10 @@ class _CameraScreenState extends State<CameraScreen> {
       );
     }
 
-    // ⏳ 初期化前
     if (_initializeControllerFuture == null) {
       return const Scaffold(
         backgroundColor: Colors.black,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text(
-                "カメラを起動中...",
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -178,7 +171,7 @@ class _CameraScreenState extends State<CameraScreen> {
           if (snapshot.hasError) {
             return Center(
               child: Text(
-                snapshot.error.toString(),
+                "エラー: ${snapshot.error}",
                 style: const TextStyle(color: Colors.white),
               ),
             );
@@ -186,17 +179,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text(
-                    "カメラを起動中...",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
+              child: CircularProgressIndicator(),
             );
           }
 
@@ -206,7 +189,6 @@ class _CameraScreenState extends State<CameraScreen> {
                 child: CameraPreview(controller!),
               ),
 
-              // 📸 撮影中オーバーレイ（連打防止）
               if (_isTakingPicture)
                 Container(
                   color: Colors.black54,

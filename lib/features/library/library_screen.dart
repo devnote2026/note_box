@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../services/library_service.dart';
@@ -20,14 +21,32 @@ class LibraryScreen extends StatefulWidget {
 class _MyLibraryScreenState extends State<LibraryScreen> {
   final LibraryService _service = LibraryService();
 
-
   String selectedGrade = "";
   String selectedNoteType = "";
 
   List<QueryDocumentSnapshot> notes = [];
   bool isLoading = false;
 
-  /// 🔥 ラベルノート導線（分離済み）
+  @override
+  void initState() {
+    super.initState();
+
+    /// 🔥 横画面禁止（この画面だけ）
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
+    loadNotes();
+  }
+
+  @override
+  void dispose() {
+    /// 🔥 元に戻す（これ忘れると他画面も縦固定になる）
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
+
+  /// 🔥 レスポンシブ対応版
   Widget _buildLabeledNotes() {
     return Material(
       color: Colors.transparent,
@@ -47,27 +66,33 @@ class _MyLibraryScreenState extends State<LibraryScreen> {
           decoration: BoxDecoration(
             color: Colors.orange,
             borderRadius: BorderRadius.circular(12),
-            border: Border()
           ),
+
+          /// 👇ここが重要
           child: Row(
-            children: const [
-              Icon(Icons.bookmark,color: Colors.black,),
-              SizedBox(width: 12),
-              Text(
-                "保存したノート",
-                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.bookmark, color: Colors.black),
+
+              const SizedBox(width: 12),
+
+              /// 🔥 文字がでかくなっても絶対崩れない
+              Expanded(
+                child: Text(
+                  "保存したノート",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    loadNotes();
   }
 
   Future<void> loadNotes() async {
@@ -80,6 +105,8 @@ class _MyLibraryScreenState extends State<LibraryScreen> {
       noteType: selectedNoteType,
     );
 
+    if (!mounted) return;
+
     setState(() {
       notes = result;
       isLoading = false;
@@ -90,7 +117,7 @@ class _MyLibraryScreenState extends State<LibraryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: BottomNavbar(),
+      bottomNavigationBar: const BottomNavbar(),
       appBar: AppBar(
         title: const Text(""),
         backgroundColor: Colors.white,
@@ -99,6 +126,8 @@ class _MyLibraryScreenState extends State<LibraryScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
+
+          /// 🔥 Column + Expandedで安全
           child: Column(
             children: [
               /// 学年フィルター
@@ -128,31 +157,36 @@ class _MyLibraryScreenState extends State<LibraryScreen> {
 
               const SizedBox(height: 16),
 
-              /// 🔥 保存したノート導線（ここに固定）
+              /// 保存したノートボタン
               _buildLabeledNotes(),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
-              /// ノート一覧
+              /// 🔥 一覧（ここが一番重要）
               Expanded(
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : notes.isEmpty
                         ? const Center(child: Text("ノートがありません"))
                         : ListView.builder(
+                            padding: EdgeInsets.zero,
                             itemCount: notes.length,
                             itemBuilder: (context, index) {
                               final note = notes[index];
-                              final data = note.data() as Map<String, dynamic>;
+                              final data =
+                                  note.data() as Map<String, dynamic>;
+
                               return NoteCard(
                                 noteId: note.id,
                                 subject: data['subject'] ?? "",
                                 noteType: data['noteType'] ?? "",
                                 term: data['term'] ?? "",
                                 nickname: data['nickname'] ?? "名無し",
-                                profileImageUrl: data['profileImageUrl'],
-                                updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
-
+                                profileImageUrl:
+                                    data['profileImageUrl'],
+                                updatedAt:
+                                    (data['updatedAt'] as Timestamp?)
+                                        ?.toDate(),
                               );
                             },
                           ),

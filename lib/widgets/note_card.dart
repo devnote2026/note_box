@@ -42,7 +42,8 @@ class NoteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: Colors.black, width: 1),
       ),
-      child: ListTile(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: () {
           Navigator.push(
             context,
@@ -54,68 +55,99 @@ class NoteCard extends StatelessWidget {
             ),
           );
         },
-        contentPadding: const EdgeInsets.all(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// 左アイコン
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.menu_book, color: Colors.white),
+              ),
 
-        /// 左アイコン
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(12),
+              const SizedBox(width: 12),
+
+              /// メインコンテンツ
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// タイトル
+                    Text(
+                      titleText,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    /// ユーザー情報
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 10,
+                          backgroundImage: profileImageUrl != null
+                              ? NetworkImage(profileImageUrl!)
+                              : null,
+                          child: profileImageUrl == null
+                              ? const Icon(Icons.person, size: 12)
+                              : null,
+                        ),
+                        const SizedBox(width: 6),
+
+                        /// ニックネーム
+                        Expanded(
+                          child: Text(
+                            nickname,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+
+                        const SizedBox(width: 6),
+
+                        /// 時間
+                        Flexible(
+                          child: Text(
+                            "・ $timeText",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              /// 右ボタン（潰れない）
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 40),
+                child: LabelButton(noteId: noteId),
+              ),
+            ],
           ),
-          child: const Icon(Icons.menu_book, color: Colors.white),
         ),
-
-        /// タイトル
-        title: Text(
-          titleText,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
-
-        /// サブ情報
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 10,
-                  backgroundImage: profileImageUrl != null
-                      ? NetworkImage(profileImageUrl!)
-                      : null,
-                  child: profileImageUrl == null
-                      ? const Icon(Icons.person, size: 12)
-                      : null,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  nickname,
-                  style: const TextStyle(fontSize: 12),
-                ),
-                const Spacer(),
-                Text(
-                  "・ $timeText",
-                  style: const TextStyle(
-                      fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-          ],
-        ),
-
-        /// ラベルボタン
-        trailing: LabelButton(noteId: noteId),
       ),
     );
   }
 
-  // 🔥 ここだけ修正（Timestamp → DateTime）
   String _formatDate(DateTime? date) {
     if (date == null) return "";
 

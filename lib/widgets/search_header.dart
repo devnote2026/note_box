@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-//検索画面上部で学年、学科、設定アイコンを表示するウィジェット。
-
 class SearchHeader extends StatelessWidget {
   final String? grade;
   final String? department;
@@ -16,16 +14,26 @@ class SearchHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final text = "${grade ?? ""}  ${department ?? ""}";
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          "$grade  $department",
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+        /// 🔥 テキストは必ずExpanded
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
+
+        const SizedBox(width: 8),
+
+        /// 🔥 アイコンは固定（潰れない）
         IconButton(
           icon: const Icon(Icons.settings),
           onPressed: onTapSettings,

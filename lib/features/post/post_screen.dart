@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // 👈 追加
+import 'package:flutter/services.dart';
 import 'package:note_box/services/profile_storage_service.dart';
 import 'package:note_box/services/post_storage_service.dart';
 import 'package:note_box/utils/image_utils.dart';
@@ -14,8 +14,6 @@ import '../../widgets/note_type_selector.dart';
 import '../../widgets/term_selector.dart';
 import '../../constants/note_type.dart';
 import '../../widgets/custom_button.dart';
-
-//ノートの情報を登録する画面
 
 class PostScreen extends StatefulWidget {
   final File imageFile;
@@ -45,7 +43,6 @@ class _PostScreenState extends State<PostScreen> {
   void initState() {
     super.initState();
 
-    // 🔥 ここ追加：縦固定
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
@@ -53,18 +50,12 @@ class _PostScreenState extends State<PostScreen> {
     fetchProfile();
   }
 
-  // 🔥 ここ追加：元に戻す（重要）
   @override
   void dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
 
-  /// 🔥 プロフィール取得
   Future<void> fetchProfile() async {
     final profileService = ProfileService(ProfileStorageService());
     final data = await profileService.getProfile();
@@ -79,7 +70,6 @@ class _PostScreenState extends State<PostScreen> {
     await fetchSubjects();
   }
 
-  /// 🔥 投稿処理（UIから分離）
   Future<void> handlePost() async {
     if (isLoading) return;
 
@@ -102,11 +92,11 @@ class _PostScreenState extends State<PostScreen> {
 
     try {
       final postService = PostService(PostStorageService());
-
       final compressedFile =
           await ImageUtils.convertToJpg(widget.imageFile);
 
       if (!mounted) return;
+
       Navigator.pop(context, true);
 
       postService.createPost(
@@ -121,7 +111,6 @@ class _PostScreenState extends State<PostScreen> {
       showError("投稿に失敗しました");
     } finally {
       if (!mounted) return;
-
       setState(() {
         isLoading = false;
       });
@@ -167,7 +156,9 @@ class _PostScreenState extends State<PostScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
+            /// 🔥 上：画像（可変）
+            Flexible(
+              flex: 5,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -181,8 +172,7 @@ class _PostScreenState extends State<PostScreen> {
                     ),
                   ),
                   Positioned(
-                    bottom:
-                        MediaQuery.of(context).padding.bottom + 12,
+                    bottom: 12,
                     right: 16,
                     child: Container(
                       decoration: const BoxDecoration(
@@ -201,7 +191,9 @@ class _PostScreenState extends State<PostScreen> {
               ),
             ),
 
+            /// 🔥 下：フォーム（全部スクロール）
             Expanded(
+              flex: 5,
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
@@ -210,112 +202,96 @@ class _PostScreenState extends State<PostScreen> {
                     top: Radius.circular(20),
                   ),
                 ),
-                child: Column(
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  "${department ?? ''}  ${grade ?? ''}",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.settings),
-                                onPressed: () async {
-                                  final result =
-                                      await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const GradeDepartmentChangeWidget(),
-                                    ),
-                                  );
-
-                                  if (!mounted || result == null)
-                                    return;
-
-                                  setState(() {
-                                    grade = result['grade'];
-                                    department =
-                                        result['department'];
-                                  });
-
-                                  await fetchSubjects();
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          NoteTypeSelector(
-                            selected:
-                                noteType ?? NoteType.lesson,
-                            onChanged: (value) {
-                              setState(() {
-                                noteType = value;
-                                term = null;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const Divider(),
-
-                    Expanded(
-                      child: ListView(
-                        children: [
-                          if (grade != null &&
-                              department != null)
-                            SubjectSelector(
-                              subjects: subjects,
-                              selectedSubject: subject,
-                              isLoading: isLoadingSubjects,
-                              onSelect: (value) {
-                                setState(() {
-                                  subject = value;
-                                });
-                              },
-                            ),
-                          const SizedBox(height: 12),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8),
-                            child: TermSelector(
-                              terms: [
-                                "前期中間",
-                                "前期末",
-                                "後期中間",
-                                "学年末"
-                              ],
-                              selectedTerm: term,
-                              enabled:
-                                  noteType == NoteType.pastExam,
-                              onSelected: (value) {
-                                setState(() {
-                                  term = value;
-                                });
-                              },
+                    /// 学科・学年 + 設定
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "${department ?? ''}  ${grade ?? ''}",
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.settings),
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const GradeDepartmentChangeWidget(),
+                              ),
+                            );
+
+                            if (!mounted || result == null) return;
+
+                            setState(() {
+                              grade = result['grade'];
+                              department = result['department'];
+                            });
+
+                            await fetchSubjects();
+                          },
+                        ),
+                      ],
                     ),
 
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: CustomButton(
-                        text: isLoading ? "投稿中..." : "投稿する",
-                        onPressed: handlePost,
+                    const SizedBox(height: 12),
+
+                    NoteTypeSelector(
+                      selected: noteType ?? NoteType.lesson,
+                      onChanged: (value) {
+                        setState(() {
+                          noteType = value;
+                          term = null;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    if (grade != null && department != null)
+                      SubjectSelector(
+                        subjects: subjects,
+                        selectedSubject: subject,
+                        isLoading: isLoadingSubjects,
+                        onSelect: (value) {
+                          setState(() {
+                            subject = value;
+                          });
+                        },
                       ),
+
+                    const SizedBox(height: 16),
+
+                    TermSelector(
+                      terms: const [
+                        "前期中間",
+                        "前期末",
+                        "後期中間",
+                        "学年末"
+                      ],
+                      selectedTerm: term,
+                      enabled: noteType == NoteType.pastExam,
+                      onSelected: (value) {
+                        setState(() {
+                          term = value;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    /// 🔥 ボタンもスクロール内に入れる
+                    CustomButton(
+                      text: isLoading ? "投稿中..." : "投稿する",
+                      onPressed: handlePost,
                     ),
                   ],
                 ),

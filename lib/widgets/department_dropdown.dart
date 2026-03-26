@@ -1,4 +1,3 @@
-// widgets/department_dropdown.dart
 import 'package:flutter/material.dart';
 
 class DepartmentDropdown extends StatelessWidget {
@@ -16,17 +15,30 @@ class DepartmentDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
+      isExpanded: true, // 🔥 必須
+
       value: departments.contains(value) ? value : null,
+
       decoration: const InputDecoration(
         labelText: "学科",
         border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ), // 🔥 高さ確保
       ),
+
       items: departments.map((dept) {
-        return DropdownMenuItem(
+        return DropdownMenuItem<String>(
           value: dept,
-          child: Text(dept),
+          child: Text(
+            dept,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis, // 🔥 崩れ防止
+          ),
         );
       }).toList(),
+
       onChanged: onChanged,
     );
   }

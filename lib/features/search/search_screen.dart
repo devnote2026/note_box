@@ -1,5 +1,3 @@
-// ノートを検索する画面
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:note_box/widgets/term_selector.dart';
@@ -17,11 +15,8 @@ import '../../widgets/grade_department_change_widget.dart';
 
 import '../../constants/note_type.dart';
 
-
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
-
-
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -29,17 +24,16 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
 
-  String? grade;                                           //このクラスで扱う状態
-  String? department;                                      //学年、学科、教科、ノートの種類、時期
+  String? grade;
+  String? department;
   String? subject;
   String? noteType = NoteType.lesson;
   String? term;
 
-  List<String> subjects = [];                              //教科リスト、termリスト
+  List<String> subjects = [];
   static const List<String> terms = ["前期中間","前期末","後期中間","学年末"];
- 
-  List<QueryDocumentSnapshot> notes = [];                  //取得したノート一覧
 
+  List<QueryDocumentSnapshot> notes = [];
 
   @override
   void initState(){
@@ -48,32 +42,24 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> onSettings() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GradeDepartmentChangeWidget()
+      )
+    );
 
-    try{
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => GradeDepartmentChangeWidget()
-        )
-      );
-
-      if(result != null){
-        setState(() {
-          grade = result['grade'];
-          department = result['department'];
-        });
-      }
-
-      await fetchSubjects();
-      await fetchNotesData();
-
+    if(result != null){
+      setState(() {
+        grade = result['grade'];
+        department = result['department'];
+      });
     }
 
-    catch(e){
-      if(!mounted) return;
-      debugPrint("学年・学科の設定に失敗しました: $e");
-    }
+    await fetchSubjects();
+    await fetchNotesData();
   }
+
   Future<void> fetchSubjects() async {
     if (grade == null || department == null) return;
 
@@ -84,179 +70,131 @@ class _SearchScreenState extends State<SearchScreen> {
       subjects = result;
       subject = null;
     });
-   }
-
+  }
 
   Future<void> fetchUserInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-    try {                                              //
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .get();
 
-      final uid = user.uid;
+    if(!mounted) return;
 
-      final doc = await FirebaseFirestore.instance
-                          .collection("users")
-                          .doc(uid)
-                          .get();
-      
-      final g = doc['grade'];
-      final d = doc['department'];
+    setState(() {
+      grade = doc['grade'];
+      department = doc['department'];
+    });
 
-      if(!mounted) return;
-      
-      setState(() {
-        grade = g;
-        department = d;
-      }); 
-
-      await fetchSubjects();
-      await fetchNotesData();
-
-    }
-
-
-
-    catch (e){
-      debugPrint("ユーザー情報の取得に失敗しました。:$e");
-      return;
-    }
+    await fetchSubjects();
+    await fetchNotesData();
   }
 
-  Future<void> fetchNotesData() async {         //条件に該当するノートの一覧を取得する
-    try{
-      final snapshot = await fetchNotes(
-        grade: grade,
-        department: department,
-        subject: subject,
-        term: term,
-        noteType: noteType,
-      );
+  Future<void> fetchNotesData() async {
+    final snapshot = await fetchNotes(
+      grade: grade,
+      department: department,
+      subject: subject,
+      term: term,
+      noteType: noteType,
+    );
 
-      if(!mounted) return;
-      setState(() {
-        notes = snapshot;
-      });
-    }
+    if(!mounted) return;
 
-    catch(e){
-      debugPrint("ノートを取得できませんでした。: $e");
-    }
+    setState(() {
+      notes = snapshot;
+    });
   }
 
-  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      bottomNavigationBar: const BottomNavbar(),
+      appBar: AppBar(backgroundColor: Colors.white),
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.white,
-    bottomNavigationBar: BottomNavbar(),
-    appBar: AppBar(backgroundColor: Colors.white,),
-    body: ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // =====================
-        // 学年・学科
-        // =====================
-        SearchHeader(
-          department: department,
-          grade: grade,
-          onTapSettings: onSettings
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            SearchHeader(
+              department: department,
+              grade: grade,
+              onTapSettings: onSettings,
+            ),
+
+            const SizedBox(height: 16),
+
+            NoteTypeSelector(
+              selected: noteType ?? NoteType.lesson,
+              onChanged: (value) async {
+                setState(() {
+                  noteType = value;
+                  term = null;
+                });
+                await fetchNotesData();
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            SubjectSelector(
+              subjects: subjects,
+              selectedSubject: subject,
+              onSelect: (item) async {
+                setState(() {
+                  subject = item;
+                  term = null;
+                });
+                await fetchNotesData();
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            TermSelector(
+              terms: terms,
+              selectedTerm: term,
+              enabled: noteType == NoteType.pastExam,
+              onSelected: (value) async {
+                setState(() {
+                  term = value;
+                });
+                await fetchNotesData();
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            const Text(
+              "検索結果",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 8),
+
+            if (notes.isEmpty)
+              const Center(child: Text("ノートがありません")),
+
+            ...notes.map((note) {
+              final data = note.data() as Map<String, dynamic>;
+
+              return NoteCard(
+                noteId: note.id,
+                subject: data['subject'] ?? "",
+                noteType: data['noteType'] ?? "",
+                term: data['term'] ?? "",
+                nickname: data['nickname'] ?? "名無し",
+                profileImageUrl: data['profileImageUrl'],
+                updatedAt:
+                    (data['updatedAt'] as Timestamp?)?.toDate(),
+              );
+            }),
+          ],
         ),
-
-
-        const SizedBox(height: 16),
-
-        // =====================
-        // ノートタイプ
-        // =====================
-        NoteTypeSelector(
-          selected: noteType ?? NoteType.lesson,
-          onChanged: (value) async{
-            setState(() {
-              noteType = value;
-              term = null;
-            });
-
-            await fetchNotesData();
-          } ,
-        ),
-
-
-        const SizedBox(height: 16),
-
-        // =====================
-        // 教科
-        // =====================
-
-        SizedBox(
-          height: 40,
-          child: SubjectSelector(
-            subjects: subjects,
-            selectedSubject: subject,
-            onSelect: (item) async{
-              setState(() {
-                subject = item;
-                term = null;
-              });
-              await fetchNotesData();
-            },
-          )
-        ),
-
-        const SizedBox(height: 16),
-
-
-
-        // =====================
-        // term（過去問のみ）
-        // =====================
-        TermSelector(
-          terms: terms,
-          selectedTerm: term,
-          enabled: noteType == NoteType.pastExam,
-          onSelected: (value) async {
-            setState(() {
-              term = value;
-            });
-
-            await fetchNotesData();
-          },
-        ),
-
-          const SizedBox(height: 16),
-
-        // =====================
-        // ノート一覧
-        // =====================
-        const Text(
-          "検索結果",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-
-        if (notes.isEmpty)
-          const Center(child: Text("ノートがありません")),
-
-        ...notes.map((note){
-          final data = note.data() as Map<String, dynamic>;
-
-          return NoteCard(
-            noteId: note.id,
-            subject: data['subject'] ?? "",
-            noteType: data['noteType'] ?? "",
-            term: data['term'] ?? "",
-            nickname: data['nickname'] ?? "名無し",
-            profileImageUrl: data['profileImageUrl'],
-            updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
-          );
-
-            
-        })
-
-        
-      ],
-    ),
-  );
-}
+      ),
+    );
+  }
 }
